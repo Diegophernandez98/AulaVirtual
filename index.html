@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudiante Integral - Prototipo MVP</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de Iconos (Lucide Icons) -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f7f9fb;
+        }
+        /* Colores basados en el logo: Azul primario y Verde secundario */
+        .bg-primary { background-color: #004c99; }
+        .text-primary { color: #004c99; }
+        .bg-secondary { background-color: #5abf86; }
+        .text-secondary { color: #5abf86; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navbar -->
+    <header class="bg-primary text-white shadow-lg sticky top-0 z-10">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold tracking-tight">
+                Estudiante Integral
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="changeView('home')" class="hover:text-secondary transition duration-150">Inicio</button>
+                <button onclick="changeView('search')" class="hover:text-secondary transition duration-150 hidden sm:inline">Buscar Tutor</button>
+                <!-- Botón para el flujo de Estudiante -->
+                <button onclick="changeView('login')" class="text-white hover:text-secondary transition duration-150 font-medium hidden sm:inline">Soy Estudiante</button>
+                <!-- Botón para el flujo de Tutor (Nuevo) -->
+                <button onclick="changeView('tutorDashboard')" class="bg-secondary px-4 py-1 rounded-full hover:bg-green-400 transition duration-150 font-medium">Soy Tutor</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Contenido Principal Dinámico -->
+    <main id="content-area" class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+        <!-- El contenido de la vista actual se renderizará aquí -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center border-t border-gray-700">
+            <p class="text-sm text-gray-400">
+                &copy; 2024 Estudiante Integral. Tu Espacio de Tutoría y Colaboración Online.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Lógica del Prototipo y Navegación ---
+        const contentArea = document.getElementById('content-area');
+        let currentView = 'home';
+        
+        // Datos simulados
+        const mockTutors = [
+            { id: 1, name: 'Dra. Ana Soto', subject: 'Matemáticas Avanzadas', rating: 4.9, price: 15, specialty: 'Cálculo Diferencial' },
+            { id: 2, name: 'Lic. Javier Cruz', subject: 'Física y Química', rating: 4.7, price: 12, specialty: 'Leyes de Newton' },
+            { id: 3, name: 'Prof. Carla Díaz', subject: 'Programación Python', rating: 5.0, price: 18, specialty: 'Estructuras de Datos' },
+        ];
+        
+        // Datos simulados del estudiante y tutor (para dashboard)
+        const mockStudent = { name: 'Estudiante Ejemplo', nextClass: { tutor: 'Dra. Ana Soto', time: 'Hoy, 16:00' } };
+        const mockTutor = { name: 'Dra. Ana Soto', nextClass: { student: 'Estudiante Ejemplo', time: 'Hoy, 16:00' }, earnings: 1200 };
+
+
+        // Función para cambiar la vista (simula la navegación entre páginas)
+        function changeView(viewName, data = null) {
+            currentView = viewName;
+            switch (viewName) {
+                case 'home':
+                    renderHomePage();
+                    break;
+                case 'search':
+                    renderSearchTutorPage();
+                    break;
+                case 'profile':
+                    renderTutorProfile(data);
+                    break;
+                case 'payment':
+                    renderPaymentPage(data);
+                    break;
+                case 'classroom':
+                    renderVirtualClassroomPage(data);
+                    break;
+                case 'login': // Subproceso: Acceso Estudiante
+                    renderLoginPage();
+                    break;
+                case 'dashboard': // Subproceso: Panel de Control Estudiante
+                    renderDashboardPage();
+                    break;
+                case 'tutorDashboard': // NUEVO Subproceso: Panel de Control Tutor
+                    renderTutorDashboardPage();
+                    break;
+                default:
+                    renderHomePage();
+            }
+            window.scrollTo(0, 0); // Vuelve al inicio de la página al cambiar de vista
+        }
+
+        // --- 1. HOME: Página principal ---
+        function renderHomePage() {
+            contentArea.innerHTML = `
+                <section class="bg-white rounded-xl shadow-2xl p-8 lg:p-16 text-center">
+                    <h1 class="text-5xl font-extrabold text-primary mb-4">
+                        Tutoría Online y Aula Virtual
+                    </h1>
+                    <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                        Conecta con tutores especializados en tiempo real. Agenda, paga y recibe tu clase en nuestro Aula Virtual Integral.
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                        <input type="text" id="search-input" placeholder="Buscar tutoría por materia (ej: Cálculo, Historia)" 
+                               class="w-full sm:w-80 p-3 border border-gray-300 rounded-lg focus:ring-secondary focus:border-secondary transition duration-150">
+                        <button onclick="changeView('search')" class="bg-secondary text-white px-8 py-3 rounded-lg font-bold hover:bg-green-600 transition duration-150 shadow-md">
+                            Buscar Ahora
+                        </button>
+                    </div>
+                </section>
+
+                <section class="mt-16">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Nuestros Procesos Clave</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <!-- Proceso: Agendamiento (Paso 1) -->
+                        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-primary">
+                            <span class="text-4xl text-primary font-extrabold block mb-3">1.</span>
+                            <h3 class="text-xl font-semibold mb-2">Busca y Agenda</h3>
+                            <p class="text-gray-600">Encuentra al tutor ideal por materia, revisa su perfil y selecciona el horario que mejor se adapte a ti.</p>
+                        </div>
+                        <!-- Proceso: Pago (Paso 2) -->
+                        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-primary">
+                            <span class="text-4xl text-primary font-extrabold block mb-3">2.</span>
+                            <h3 class="text-xl font-semibold mb-2">Paga Seguro</h3>
+                            <p class="text-gray-600">Completa la transacción a través de nuestra pasarela de pagos integrada para confirmar tu reserva.</p>
+                        </div>
+                        <!-- Proceso: Clase (Paso 3) -->
+                        <div class="bg-white p-6 rounded-xl shadow-lg border-t-4 border-primary">
+                            <span class="text-4xl text-primary font-extrabold block mb-3">3.</span>
+                            <h3 class="text-xl font-semibold mb-2">Conéctate al Aula Virtual</h3>
+                            <p class="text-gray-600">Accede a la sesión a la hora pactada, utilizando videollamada, pizarra y compartición de pantalla.</p>
+                        </div>
+                    </div>
+                </section>
+            `;
+        }
+        
+        // --- SUBPROCESO: LOGIN (Acceso Estudiante) ---
+        function renderLoginPage() {
+            contentArea.innerHTML = `
+                <div class="max-w-md mx-auto bg-white rounded-xl shadow-2xl p-8 mt-10">
+                    <h2 class="text-3xl font-bold text-primary mb-6 text-center">Acceder como Estudiante</h2>
+                    <p class="text-center text-gray-500 mb-6">Proceso de Autenticación de Usuario.</p>
+
+                    <div class="space-y-4">
+                        <input type="email" placeholder="Correo Electrónico" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-secondary focus:border-secondary">
+                        <input type="password" placeholder="Contraseña" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-secondary focus:border-secondary">
+                        
+                        <div class="flex justify-between items-center text-sm">
+                            <label class="flex items-center text-gray-600">
+                                <input type="checkbox" class="rounded text-primary mr-2">
+                                Recordarme
+                            </label>
+                            <a href="#" class="text-primary hover:underline">¿Olvidaste tu contraseña?</a>
+                        </div>
+
+                        <button onclick="changeView('dashboard')" class="bg-secondary text-white px-6 py-3 rounded-lg font-bold hover:bg-green-600 transition duration-150 w-full shadow-md">
+                            Iniciar Sesión
+                        </button>
+                    </div>
+
+                    <p class="text-center text-sm text-gray-600 mt-6">
+                        ¿No tienes cuenta? <a href="#" class="text-primary font-semibold hover:underline">Regístrate aquí</a>
+                    </p>
+                </div>
+            `;
+        }
+
+        // --- SUBPROCESO: DASHBOARD (Panel de Control del Estudiante) ---
+        function renderDashboardPage() {
+            contentArea.innerHTML = `
+                <div class="bg-white rounded-xl shadow-2xl p-8">
+                    <h2 class="text-4xl font-bold text-primary mb-6">Bienvenido, ${mockStudent.name}</h2>
+                    <p class="text-xl text-gray-600 mb-8">Gestión de Clases y Perfil (Subprocesos de Gestión).</p>
+                    
+                    <!-- Próxima Clase -->
+                    <div class="bg-blue-50 p-6 rounded-lg border-l-4 border-primary mb-8 flex justify-between items-center">
+                        <div>
+                            <p class="text-sm font-semibold text-primary">PRÓXIMA SESIÓN AGENDADA</p>
+                            <p class="text-2xl font-bold text-gray-800">${mockStudent.nextClass.tutor} - ${mockStudent.nextClass.time}</p>
+                        </div>
+                        <button onclick="changeView('classroom', mockTutors[0])" class="bg-secondary text-white px-6 py-3 rounded-lg font-bold hover:bg-green-600 transition duration-150">
+                            Acceder al Aula
+                        </button>
+                    </div>
+
+                    <!-- Subprocesos de Gestión -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        <!-- Subproceso: Historial de Clases -->
+                        <div class="bg-gray-50 p-6 rounded-xl shadow-md border-t-4 border-secondary">
+                            <h3 class="text-xl font-semibold mb-2 text-gray-800">Historial de Clases</h3>
+                            <p class="text-gray-600 mb-4">Revisa y descarga las grabaciones y transcripciones de tus sesiones pasadas.</p>
+                            <button class="text-primary font-medium hover:underline" onclick="alertUser('Simulación: Abriendo historial de clases.', 'info')">Ver Historial & Descargar</button>
+                        </div>
+                        
+                        <!-- Subproceso: Gestión de Suscripción/Pagos -->
+                        <div class="bg-gray-50 p-6 rounded-xl shadow-md border-t-4 border-secondary">
+                            <h3 class="text-xl font-semibold mb-2 text-gray-800">Pagos y Facturación</h3>
+                            <p class="text-gray-600 mb-4">Administra tu método de pago y consulta tus facturas.</p>
+                            <button class="text-primary font-medium hover:underline" onclick="alertUser('Simulación: Abriendo sección de facturación.', 'info')">Administrar Pagos</button>
+                        </div>
+
+                        <!-- Subproceso: Edición de Perfil -->
+                        <div class="bg-gray-50 p-6 rounded-xl shadow-md border-t-4 border-secondary">
+                            <h3 class="text-xl font-semibold mb-2 text-gray-800">Mi Perfil</h3>
+                            <p class="text-gray-600 mb-4">Actualiza tu información personal, materias de interés y foto de perfil.</p>
+                            <button class="text-primary font-medium hover:underline" onclick="alertUser('Simulación: Abriendo formulario de edición de perfil.', 'info')">Editar Perfil</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // --- NUEVO SUBPROCESO: TUTOR DASHBOARD (Panel de Profesor) ---
+        function renderTutorDashboardPage() {
+            // Usando Dra. Ana Soto como el tutor simulado
+            const tutor = mockTutors.find(t => t.id === 1) || { name: 'Tutor Ejemplo', subject: 'Materia' };
+            
+            contentArea.innerHTML = `
+                <div class="bg-white rounded-xl shadow-2xl p-8">
+                    <h2 class="text-4xl font-bold text-primary mb-6">Panel del Tutor | Bienvenido, ${tutor.name}</h2>
+                    <p class="text-xl text-gray-600 mb-8">Gestión de Clases, Horarios y Ganancias (Subprocesos para Tutores).</p>
+                    
+                    <!-- Resumen Rápido de Métricas -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-primary text-white p-6 rounded-lg shadow-lg">
+                            <p class="text-sm opacity-80">GANANCIAS ESTE MES</p>
+                            <p class="text-3xl font-bold">$${mockTutor.earnings}</p>
+                        </div>
+                        <div class="bg-secondary text-white p-6 rounded-lg shadow-lg">
+                            <p class="text-sm opacity-80">CLASES PENDIENTES</p>
+                            <p class="text-3xl font-bold">5</p>
+                        </div>
+                        <div class="bg-gray-100 text-gray-800 p-6 rounded-lg shadow-lg">
+                            <p class="text-sm font-semibold">PRÓXIMA CLASE</p>
+                            <p class="text-xl font-bold text-primary">${mockTutor.nextClass.time}</p>
+                            <p class="text-sm text-gray-600">con ${mockTutor.nextClass.student}</p>
+                        </div>
+                    </div>
+
+                    <!-- Subprocesos de Gestión del Tutor -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        <!-- Subproceso: Gestión de Horarios -->
+                        <div class="bg-gray-50 p-6 rounded-xl shadow-md border-t-4 border-primary">
+                            <h3 class="text-xl font-semibold mb-2 text-gray-800">Gestión de Horarios</h3>
+                            <p class="text-gray-600 mb-4">Define tu disponibilidad para que los estudiantes puedan agendar clases.</p>
+                            <button class="text-primary font-medium hover:underline" onclick="alertUser('Simulación: Abriendo calendario de disponibilidad.', 'info')">Editar Disponibilidad</button>
+                        </div>
+                        
+                        <!-- Subproceso: Solicitudes de Tutoría -->
+                        <div class="bg-gray-50 p-6 rounded-xl shadow-md border-t-4 border-primary">
+                            <h3 class="text-xl font-semibold mb-2 text-gray-800">Clases Agendadas</h3>
+                            <p class="text-gray-600 mb-4">Revisa las clases confirmadas y accede a las próximas sesiones.</p>
+                            <button onclick="changeView('classroom', mockTutors[0])" class="text-primary font-medium hover:underline">Acceder a Sesión</button>
+                        </div>
+
+                        <!-- Subproceso: Historial de Pagos y Facturación -->
+                        <div class="bg-gray-50 p-6 rounded-xl shadow-md border-t-4 border-primary">
+                            <h3 class="text-xl font-semibold mb-2 text-gray-800">Historial de Pagos</h3>
+                            <p class="text-gray-600 mb-4">Consulta el detalle de tus ganancias y las transferencias realizadas.</p>
+                            <button class="text-primary font-medium hover:underline" onclick="alertUser('Simulación: Abriendo historial de transacciones.', 'info')">Ver Ganancias</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- 2. BÚSQUEDA Y AGENDAMIENTO: Proceso principal ---
+        function renderSearchTutorPage() {
+            const tutorCards = mockTutors.map(tutor => `
+                <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 hover:shadow-xl transition duration-300">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-primary font-bold text-xl">
+                            ${tutor.name.charAt(0)}
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800">${tutor.name}</h3>
+                            <p class="text-sm text-gray-500">${tutor.specialty}</p>
+                            <p class="text-lg font-semibold text-primary">${tutor.subject}</p>
+                            <div class="flex items-center mt-1 text-yellow-500 text-sm">
+                                <span>&#9733; ${tutor.rating}</span>
+                                <span class="ml-2 text-gray-500"> | $${tutor.price}/hr</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="renderTutorProfile(${tutor.id})" class="text-primary border border-primary px-4 py-2 rounded-lg hover:bg-primary hover:text-white transition duration-150">
+                            Ver Perfil
+                        </button>
+                        <button onclick="changeView('payment', ${tutor.id})" class="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-150">
+                            Agendar & Pagar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            contentArea.innerHTML = `
+                <h2 class="text-4xl font-bold text-gray-800 mb-6 text-center">Encuentra tu Tutor Ideal</h2>
+                
+                <!-- Subproceso: Filtro de Búsqueda -->
+                <div class="bg-white p-4 rounded-xl shadow mb-8 flex flex-col md:flex-row gap-4 items-center">
+                    <input type="text" placeholder="Filtrar por nombre o tema..." class="w-full md:w-1/3 p-2 border border-gray-300 rounded-lg">
+                    <select class="w-full md:w-1/4 p-2 border border-gray-300 rounded-lg">
+                        <option>Materia: Todas</option>
+                        <option>Matemáticas</option>
+                        <option>Física</option>
+                        <option>Programación</option>
+                    </select>
+                    <select class="w-full md:w-1/4 p-2 border border-gray-300 rounded-lg">
+                        <option>Horario: Mañana</option>
+                        <option>Horario: Tarde</option>
+                        <option>Horario: Noche</option>
+                    </select>
+                    <button class="bg-primary text-white p-2 rounded-lg w-full md:w-1/6 hover:bg-blue-800 transition duration-150">Aplicar</button>
+                </div>
+
+                <!-- Lista de Tutores -->
+                <div class="space-y-6">
+                    ${tutorCards}
+                </div>
+                
+                <button onclick="changeView('home')" class="mt-8 text-primary hover:underline flex items-center">
+                    &larr; Volver al inicio
+                </button>
+            `;
+        }
+        
+        // --- 2.1. Perfil del Tutor (Subproceso) ---
+        function renderTutorProfile(tutorId) {
+            const tutor = mockTutors.find(t => t.id === tutorId);
+            if (!tutor) return;
+
+            contentArea.innerHTML = `
+                <div class="bg-white rounded-xl shadow-2xl p-8 max-w-4xl mx-auto">
+                    <h2 class="text-4xl font-bold text-primary mb-6">${tutor.name} - Perfil Completo</h2>
+                    
+                    <div class="flex flex-col md:flex-row gap-8">
+                        <!-- Info Personal -->
+                        <div class="md:w-1/3 text-center">
+                            <div class="w-32 h-32 bg-secondary rounded-full mx-auto flex items-center justify-center text-white text-4xl font-bold mb-4">
+                                ${tutor.name.charAt(0)}
+                            </div>
+                            <p class="text-2xl font-semibold">${tutor.subject}</p>
+                            <p class="text-gray-500">${tutor.specialty}</p>
+                            <p class="text-3xl font-bold text-green-600 mt-2">$${tutor.price}/hr</p>
+                            <div class="flex items-center justify-center mt-2 text-yellow-500 text-lg">
+                                <span>&#9733; ${tutor.rating} (50+ clases)</span>
+                            </div>
+                        </div>
+
+                        <!-- Info Detallada y Agendamiento -->
+                        <div class="md:w-2/3">
+                            <h3 class="text-2xl font-semibold border-b pb-2 mb-4 text-gray-800">Biografía y Experiencia</h3>
+                            <p class="text-gray-600 mb-6">
+                                ${tutor.name} es experto en ${tutor.subject} con 8 años de experiencia. Su metodología se centra en la aplicación práctica de conceptos complejos para un aprendizaje integral. Ha ayudado a más de 100 estudiantes a alcanzar sus metas académicas.
+                            </p>
+
+                            <!-- Subproceso: Selección de Horario -->
+                            <h3 class="text-2xl font-semibold border-b pb-2 mb-4 text-gray-800">Seleccionar Horario</h3>
+                            <div class="grid grid-cols-3 gap-3 mb-6">
+                                <button class="bg-green-100 text-green-700 p-2 rounded-lg font-medium hover:bg-green-200">Hoy 16:00</button>
+                                <button class="bg-green-100 text-green-700 p-2 rounded-lg font-medium hover:bg-green-200">Mañana 10:00</button>
+                                <button class="bg-gray-200 text-gray-500 p-2 rounded-lg font-medium cursor-not-allowed">Mañana 18:00 (Ocupado)</button>
+                                <button class="bg-green-100 text-green-700 p-2 rounded-lg font-medium hover:bg-green-200">Jueves 11:30</button>
+                            </div>
+
+                            <button onclick="changeView('payment', ${tutor.id})" class="bg-primary text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-800 transition duration-150 w-full shadow-md">
+                                Confirmar Agendamiento y Pagar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="changeView('search')" class="mt-8 text-primary hover:underline flex items-center">
+                    &larr; Volver a la búsqueda
+                </button>
+            `;
+        }
+
+
+        // --- 3. PROCESO DE PAGO: Simulación de Pasarela (Subproceso) ---
+        function renderPaymentPage(tutorId) {
+            const tutor = mockTutors.find(t => t.id === tutorId);
+            if (!tutor) return;
+
+            const total = tutor.price; // 1 hora
+            
+            contentArea.innerHTML = `
+                <div class="max-w-xl mx-auto bg-white rounded-xl shadow-2xl p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Proceso de Pago Seguro</h2>
+                    <p class="text-center text-gray-500 mb-8">Estás a punto de pagar por tu sesión de tutoría.</p>
+
+                    <!-- Resumen de la Compra -->
+                    <div class="border p-4 rounded-lg mb-6 bg-gray-50">
+                        <h3 class="text-xl font-semibold mb-2">Resumen</h3>
+                        <div class="flex justify-between py-1">
+                            <span class="text-gray-600">Tutor:</span>
+                            <span class="font-medium">${tutor.name}</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b pb-2">
+                            <span class="text-gray-600">Tema:</span>
+                            <span class="font-medium">${tutor.subject}</span>
+                        </div>
+                        <div class="flex justify-between py-2 mt-2 font-bold text-xl">
+                            <span class="text-gray-800">TOTAL A PAGAR:</span>
+                            <span class="text-secondary">$${total}.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Simulación de Formulario de Pago -->
+                    <h3 class="text-xl font-semibold mb-3">Información de Tarjeta (Simulación)</h3>
+                    <div class="space-y-4">
+                        <input type="text" placeholder="Número de Tarjeta" class="w-full p-3 border border-gray-300 rounded-lg">
+                        <div class="flex space-x-4">
+                            <input type="text" placeholder="MM/AA" class="w-1/2 p-3 border border-gray-300 rounded-lg">
+                            <input type="text" placeholder="CVC" class="w-1/2 p-3 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+
+                    <button onclick="simulatePaymentSuccess(${tutorId})" class="bg-secondary text-white px-6 py-3 rounded-lg font-bold hover:bg-green-600 transition duration-150 w-full mt-6 shadow-md">
+                        Pagar Ahora $${total}.00
+                    </button>
+                    
+                    <p class="text-xs text-gray-500 mt-4 text-center">
+                        Transacción procesada por Pasarela Externa (Webpay/Transbank simulación).
+                    </p>
+                </div>
+            `;
+        }
+
+        // Simulación de éxito de pago y avance al Aula Virtual
+        function simulatePaymentSuccess(tutorId) {
+            const tutor = mockTutors.find(t => t.id === tutorId);
+            if (tutor) {
+                alertUser('Pago Exitoso. Tu sesión con ' + tutor.name + ' ha sido confirmada.', 'success');
+                // Simulamos el acceso inmediato al aula para propósitos del prototipo.
+                setTimeout(() => changeView('classroom', tutor), 1500); 
+            }
+        }
+
+        // --- 4. AULA VIRTUAL: Proceso de Clase (Core) ---
+        function renderVirtualClassroomPage(tutor) {
+            contentArea.innerHTML = `
+                <div class="bg-white rounded-xl shadow-2xl p-4">
+                    <h2 class="text-3xl font-bold text-primary mb-4 text-center">
+                        Aula Virtual | Sesión con ${tutor.name} (${tutor.subject})
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                        
+                        <!-- Panel de Videollamada y Pizarra (3/4 del ancho) -->
+                        <div class="lg:col-span-3 space-y-4">
+                            <!-- Área de Videollamada (WebRTC Simulación) -->
+                            <div class="relative bg-gray-900 rounded-lg aspect-video flex items-center justify-center">
+                                <span class="text-white text-xl">VIDEO STREAM (WebRTC P2P)</span>
+                                
+                                <!-- Video Local (Profesor) -->
+                                <div class="absolute top-4 left-4 w-32 h-24 bg-blue-600 rounded-md border-2 border-white flex items-center justify-center text-sm text-white">
+                                    Tutor (${tutor.name})
+                                </div>
+                                <!-- Video Remoto (Estudiante) -->
+                                <div class="absolute top-4 right-4 w-32 h-24 bg-green-600 rounded-md border-2 border-white flex items-center justify-center text-sm text-white">
+                                    Estudiante
+                                </div>
+                            </div>
+
+                            <!-- Pizarra Interactiva (Simulación) -->
+                            <div class="bg-gray-100 rounded-lg p-3 border border-gray-300">
+                                <h3 class="text-xl font-semibold mb-2 text-gray-700">Pizarra Compartida</h3>
+                                <div class="h-80 bg-white border border-dashed border-gray-400 rounded-md flex items-center justify-center text-gray-500">
+                                    Área de Dibujo y Compartición de Pantalla
+                                </div>
+                                <div class="flex space-x-3 mt-3 justify-center">
+                                    <button class="p-2 bg-primary text-white rounded-lg hover:bg-blue-800">Micro</button>
+                                    <button class="p-2 bg-primary text-white rounded-lg hover:bg-blue-800">Cámara</button>
+                                    <button class="p-2 bg-secondary text-white rounded-lg hover:bg-green-600">Compartir Pantalla</button>
+                                    <!-- Al finalizar, se vuelve al dashboard simulado -->
+                                    <button class="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700" onclick="changeView('dashboard')">Finalizar Clase & Valorar</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Panel de Chat y Material (1/4 del ancho) -->
+                        <div class="lg:col-span-1 bg-gray-50 p-4 rounded-lg border">
+                            <h3 class="text-xl font-bold mb-3 text-gray-800">Chat de Sesión</h3>
+                            <div class="h-80 overflow-y-auto border p-2 bg-white rounded-lg mb-3">
+                                <p class="text-xs text-gray-500 mb-1">10:01 AM - ${tutor.name}: ¡Hola! Bienvenido a la sesión.</p>
+                                <p class="text-xs text-primary bg-blue-50 p-1 rounded-lg mb-1">10:02 AM - Yo: Hola ${tutor.name}, listo para empezar.</p>
+                                <p class="text-xs text-gray-500 mb-1">10:05 AM - ${tutor.name}: Mira la pizarra, comenzaremos con la integral definida.</p>
+                            </div>
+                            <input type="text" placeholder="Escribe un mensaje..." class="w-full p-2 border rounded-lg mb-4">
+
+                            <h3 class="text-xl font-bold mb-3 text-gray-800">Material de Apoyo</h3>
+                            <ul class="space-y-2 text-sm">
+                                <li class="text-gray-600">Recursos de Cálculo.pdf</li>
+                                <li class="text-gray-600">Ecuaciones Clave.jpg</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Función de Alerta Personalizada (Reemplazo de alert()) ---
+        function alertUser(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'fixed top-4 right-4 p-4 rounded-lg shadow-xl text-white z-50 transition-transform duration-500 transform translate-x-0';
+            
+            if (type === 'success') {
+                alertDiv.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                alertDiv.classList.add('bg-red-500');
+            } else {
+                alertDiv.classList.add('bg-blue-500');
+            }
+            
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
+            
+            // Auto-ocultar y limpiar
+            setTimeout(() => {
+                alertDiv.classList.add('translate-x-full');
+                alertDiv.classList.remove('translate-x-0');
+            }, 3000);
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3500);
+        }
+
+        // Inicializar la página en la vista 'home'
+        window.onload = () => {
+            changeView('home');
+        };
+
+    </script>
+</body>
+</html>

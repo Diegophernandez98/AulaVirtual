@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel de Estudiante{% endblock %}
+
+{% block content %}
+    <!-- 2. SECCIÓN DE BÚSQUEDA DE PROFESORES -->
+    <div class="professor-search-section">
+        <h3 class="texto-centrado" style="color: #2c3e50;">Profesores Destacados</h3>
+
+        <!-- 
+          Formulario para la barra de búsqueda y el filtro.
+          Usamos Flexbox de Bootstrap para alinearlos.
+        -->
+        <form class="filter-bar" method="GET" action="">
+            
+            <!-- Barra de búsqueda (izquierda) -->
+            <div class="search-bar">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="q" placeholder="Buscar profesor...">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtro (derecha) -->
+            <div class="filter-select">
+                <div class="input-group">
+                    <label class="input-group-text" for="filtro_por">Filtrar por:</label>
+                    <select class="form-select" id="filtro_por" name="filtro">
+                        <option value="nombre" selected>Nombre</option>
+                        <option value="asignatura">Asignatura</option>
+                    </select>
+                </div>
+            </div>
+
+        </form>
+
+        <!-- 
+          3. LISTA DE PROFESORES
+          Aquí es donde iría tu bucle de Django. 
+          El CSS se encargará de crear la cuadrícula.
+        -->
+        <div class="professor-list">
+            
+            <!-- 
+              INICIO DEL BUCLE DE DJANGO (Ejemplo estructural) 
+              Tu vista de Django pasaría la variable 'profesores_populares'
+            -->
+            {% for profesor in profesores_populares %}
+            
+            <!-- Tarjeta individual del profesor -->
+            <div class="professor-card">
+                <!-- 
+                  Usamos un placeholder de imagen.
+                  En el futuro, aquí iría: {{ profesor.foto_perfil.url }} 
+                -->
+                <img src="https://placehold.co/100x100/2c3e50/ffffff?text={{ profesor.nombre.0 }}" alt="Foto de {{ profesor.nombre }}">
+                
+                <h4>{{ profesor.nombre }} {{ profesor.apellido }}</h4>
+                
+                <div class="asignaturas">
+                    <!-- 
+                      Aquí listarías las asignaturas del profesor.
+                      Esto es solo un ejemplo estructural.
+                    -->
+                    <span class="badge bg-secondary">Matemáticas</span>
+                    <span class="badge bg-secondary">Física</span>
+                </div>
+                
+                <!-- 
+                  El enlace iría al perfil público del profesor
+                  Ej: href="{% url 'perfil_profesor' profesor.id %}"
+                -->
+                <a href="#" class="btn-elegante btn-sm" style="width: 100%;">Ver Perfil</a>
+            </div>
+            
+            {% empty %}
+            <!-- 
+              Esto se muestra si la variable 'profesores_populares' está vacía 
+              o si la búsqueda no arroja resultados.
+            -->
+            <p class="texto-centrado" style="grid-column: 1 / -1;">
+                No hay profesores disponibles que coincidan con tu búsqueda.
+            </p>
+
+            {% endfor %}
+            <!-- FIN DEL BUCLE DE DJANGO -->
+
+        </div> <!-- Fin de .professor-list -->
+        
+    </div> <!-- Fin de .professor-search-section -->
+
+</div> <!-- Fin de .content-card -->
+
+{% endblock %}

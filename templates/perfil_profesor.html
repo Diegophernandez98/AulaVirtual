@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Perfil de {{ profesor.nombre }} | Estudiante Integral{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <!-- Navegación rápida -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'estudiante' %}">Panel Estudiante</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Perfil Docente</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- IZQUIERDA: Información del Profesor -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 100px; z-index: 1;">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4 position-relative d-inline-block">
+                        {% if profesor.foto_perfil %}
+                            <img src="{{ profesor.foto_perfil.url }}" class="rounded-circle img-thumbnail shadow-sm" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto text-secondary fw-bold display-4 shadow-sm" style="width: 150px; height: 150px;">
+                                {{ profesor.nombre|first }}{{ profesor.apellido|first }}
+                            </div>
+                        {% endif %}
+                        <span class="position-absolute bottom-0 end-0 p-2 bg-success border border-light rounded-circle" title="Verificado"></span>
+                    </div>
+
+                    <h3 class="fw-bold mb-1">{{ profesor.nombre }} {{ profesor.apellido }}</h3>
+                    <p class="text-muted mb-3">Docente Certificado</p>
+
+                    <div class="mb-4">
+                        {% for asignatura in profesor.asignaturas.all %}
+                            <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2 m-1">{{ asignatura.nombre }}</span>
+                        {% empty %}
+                            <span class="text-muted small">Sin asignaturas</span>
+                        {% endfor %}
+                    </div>
+
+                    <ul class="list-group list-group-flush text-start small mb-4">
+                        <li class="list-group-item bg-transparent px-0"><i class="bi bi-envelope me-2 text-primary"></i> {{ profesor.email }}</li>
+                        {% if profesor.celular %}
+                        <li class="list-group-item bg-transparent px-0"><i class="bi bi-telephone me-2 text-primary"></i> {{ profesor.celular }}</li>
+                        {% endif %}
+                    </ul>
+
+                    <div class="d-grid">
+                        <a href="mailto:{{ profesor.email }}" class="btn btn-outline-dark"><i class="bi bi-chat-dots me-2"></i> Contactar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DERECHA: Horarios -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-3">Sobre mí</h4>
+                    <p class="text-muted">Hola, soy {{ profesor.nombre }}. ¡Reserva una clase conmigo y mejoremos tus notas juntos!</p>
+                </div>
+            </div>
+
+            <!-- 1. DISPONIBLES -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                    <h4 class="fw-bold mb-0 text-success"><i class="bi bi-check-circle me-2"></i> Disponibles</h4>
+                    <p class="text-muted small">Selecciona un bloque para agendar.</p>
+                </div>
+                <div class="card-body p-4">
+                    {% if horarios_disponibles %}
+                        <div class="row row-cols-1 row-cols-md-2 g-3">
+                            {% for h in horarios_disponibles %}
+                            <div class="col">
+                                <div class="border border-success rounded p-3 d-flex justify-content-between align-items-center bg-white shadow-sm hover-shadow transition">
+                                    <div>
+                                        <!-- CORRECCIÓN: Usamos h.fecha con formato de fecha -->
+                                        <h6 class="fw-bold mb-1 text-dark text-capitalize">{{ h.fecha|date:"l d F" }}</h6>
+                                        <small class="text-success fw-bold">
+                                            <i class="bi bi-clock me-1"></i> {{ h.hora_inicio|time:"H:i" }} - {{ h.hora_fin|time:"H:i" }}
+                                        </small>
+                                    </div>
+                                    <form action="{% url 'confirmar_reserva' h.id %}" method="POST"> 
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-success btn-sm px-3 rounded-pill" onclick="return confirm('¿Confirmar reserva para el {{ h.fecha|date:'l d' }}?');">
+                                            Reservar
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">No hay horarios disponibles por ahora.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 2. NO DISPONIBLES (OCUPADOS) -->
+            {% if horarios_ocupados %}
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0 text-secondary"><i class="bi bi-slash-circle me-2"></i> Ocupados</h5>
+                    <p class="text-muted small">Reservados por otros estudiantes.</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row row-cols-1 row-cols-md-2 g-3">
+                        {% for h in horarios_ocupados %}
+                        <div class="col">
+                            <div class="border rounded p-3 d-flex justify-content-between align-items-center bg-gray-200 opacity-75">
+                                <div>
+                                    <!-- CORRECCIÓN: Usamos h.fecha aquí también -->
+                                    <h6 class="fw-bold mb-1 text-muted text-decoration-line-through text-capitalize">{{ h.fecha|date:"l d F" }}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i> {{ h.hora_inicio|time:"H:i" }} - {{ h.hora_fin|time:"H:i" }}
+                                    </small>
+                                </div>
+                                <button class="btn btn-secondary btn-sm px-3 rounded-pill disabled" disabled>Ocupado</button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-shadow:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.1)!important; }
+    .transition { transition: all 0.2s ease-in-out; }
+    .bg-gray-200 { background-color: #e9ecef; }
+    /* Capitalizar días (Lunes, Martes) que Django a veces entrega en minúscula */
+    .text-capitalize { text-transform: capitalize; }
+</style>
+{% endblock %}

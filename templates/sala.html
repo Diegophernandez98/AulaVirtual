@@ -1,0 +1,546 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sala #{{ room_id }} | Aula Virtual{% endblock %}
+
+{% block content %}
+<!-- Librerías -->
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@excalidraw/excalidraw@0.17.6/dist/excalidraw.production.min.js"></script>
+
+<style>
+    /* Cursores Remotos */
+    .remote-cursor { position: absolute; width: 12px; height: 12px; background: #dc3545; border-radius: 50%; pointer-events: none; z-index: 900; display: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.1s linear; }
+    .remote-cursor-label { position: absolute; top: 12px; left: 12px; background: #dc3545; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; white-space: nowrap; }
+    
+    /* Estilos Video */
+    .video-container { position: relative; width: 100%; height: 100%; background-color: #000; border-radius: 8px; overflow: hidden; border: 2px solid #6c757d; transition: height 0.3s ease; }
+    .video-element { width: 100%; height: 100%; object-fit: cover; }
+    
+    /* Botones Video */
+    .btn-video-control { background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
+    .btn-video-control:hover { background: rgba(255,255,255,0.3); }
+    .btn-video-control.active { color: #28a745; }
+    .btn-video-control.inactive { color: #dc3545; }
+    .btn-hide-video { position: absolute; top: 5px; right: 5px; z-index: 30; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 4px; padding: 2px 6px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; }
+    .video-controls-bar { position: absolute; bottom: 0; left: 0; width: 100%; padding: 5px; display: flex; justify-content: center; gap: 10px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 20; opacity: 0; transition: opacity 0.3s; }
+    .video-container:hover .video-controls-bar { opacity: 1; }
+    .video-minimized .video-element, .video-minimized .video-overlay-off, .video-minimized .video-controls-bar, .video-minimized #video-placeholder { display: none !important; }
+    .video-minimized { height: 40px !important; background: #333; border: 1px solid #555; }
+    #draggable-video { position: absolute; top: 15px; left: 15px; width: 260px; z-index: 1000; cursor: grab; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-radius: 8px; background: transparent; user-select: none; }
+    #draggable-video:active { cursor: grabbing; }
+    .video-overlay-off { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #212529; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+    .mic-status-badge { position: absolute; top: 10px; left: 10px; z-index: 20; background: rgba(220, 53, 69, 0.9); color: white; padding: 4px 8px; border-radius: 50%; font-size: 0.8rem; display: block; }
+    #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    .toast-msg { background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 20px; font-size: 0.9rem; animation: fadeUp 0.3s ease; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+
+
+
+    /* AJUSTES PIZARRA */
+
+    .excalidraw .App-menu_bottom { display: none !important; } 
+    .excalidraw .scrollToContent { display: none !important; } 
+    
+    /* 1. Contenedor "Wrapper": Ocultamos el scroll del navegador */
+    #pizarra-wrapper { 
+        overflow: hidden; /* IMPORTANTE: Esto elimina las barras de scroll externas */
+        background-color: #f0f0f0; 
+        display: flex; 
+        justify-content: center; 
+        align-items: center; 
+        width: 99%;
+        height: 93%; /* Asegura que llene el espacio asignado en la columna */
+    }
+
+    /* 2. Contenido de la Pizarra: Definimos límites y borde */
+    #pizarra-content { 
+        /* Usamos 100% para que se adapte al hueco disponible sin salirse (evita scroll) */
+        width: 99%; 
+        height: 93%; 
+        
+        position: relative; 
+        background-color: white; 
+        box-shadow: 0 0 20px rgba(0,0,0,0.1); 
+        
+        /* AQUÍ ESTÁ EL LÍMITE VISUAL */
+        border-radius: 4px;
+    }
+
+
+
+    /* CONTROLES DE PAGINACIÓN */
+    .pagination-bar {
+        position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+        background: white; border-radius: 50px; padding: 5px 10px;
+        display: flex; align-items: center; gap: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 800; border: 1px solid #ddd;
+    }
+    .page-indicator { font-weight: bold; color: #333; font-variant-numeric: tabular-nums; min-width: 40px; text-align: center; }
+    
+    /* Botón Grabar */
+    .recording-dot {
+        width: 10px; height: 10px; background-color: red; border-radius: 50%;
+        display: inline-block; margin-right: 5px; animation: blink 1s infinite;
+    }
+    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+</style>
+
+<div id="toast-container"></div>
+
+
+
+<div class="container-fluid py-3" style="height: calc(100vh - 80px);">
+    <div class="row h-100 g-3 position-relative">
+        
+        <!-- COLUMNA IZQUIERDA -->
+        <div class="col-lg-9 d-flex flex-column gap-3 h-100 position-relative">
+            <div class="flex-grow-1 position-relative h-100" id="workspace-area">
+                <!-- 2. HEADER CON GRABACIÓN -->
+                <div class="position-absolute top-0 start-0 w-100 p-3 d-flex justify-content-end align-items-start pointer-events-none" style="z-index: 50; pointer-events: none;">
+                    <div class="d-flex gap-2 pointer-events-auto align-items-center" style="pointer-events: auto;">
+                        
+                        <!-- BOTÓN GRABAR -->
+                        <button class="btn btn-outline-danger btn-sm d-flex align-items-center bg-white shadow-sm" id="btn-record" onclick="toggleRecording()" title="Grabar pantalla">
+                            <i class="bi bi-record-circle me-1"></i> Grabar
+                        </button>
+                        
+                        <span class="badge bg-secondary d-flex align-items-center gap-2 px-3 py-2 shadow-sm" id="status-badge"><span class="spinner-grow spinner-grow-sm" role="status"></span> ...</span>
+                        <button class="btn btn-light border shadow-sm btn-sm" onclick="forceVideoReconnect()" title="Reconectar Video"><i class="bi bi-arrow-clockwise"></i></button>
+                        <a href="{% url 'mis_clases_agendadas' %}" class="btn btn-danger shadow-sm btn-sm">Salir</a>
+                    </div>
+                </div>
+                <!-- 1. VIDEO REMOTO -->
+                <div id="draggable-video">
+                    <div id="remote-video-container" class="video-container" style="height: 150px;"> 
+                        <button class="btn-hide-video" onclick="toggleVideoContainer('remote-video-container')" title="Minimizar"><i class="bi bi-dash-lg"></i></button>
+                        <video id="remote-video" autoplay playsinline class="video-element"></video>
+                        <div id="remote-camera-overlay" class="video-overlay-off"><i class="bi bi-camera-video-off display-4 mb-2 opacity-50"></i><span class="small text-white-50">Cámara Apagada</span></div>
+                        <div id="remote-mic-badge" class="mic-status-badge" title="Micrófono silenciado"><i class="bi bi-mic-mute-fill"></i></div>
+                        <div class="position-absolute bottom-0 start-0 w-100 bg-black bg-opacity-75 text-white px-2 py-1 d-flex justify-content-between align-items-center" style="font-size: 0.75rem; z-index: 21; height: 25px;">
+                            <span>{% if rol == 'Profesor' %}Alumno{% else %}Profesor{% endif %}</span>
+                            <i class="bi bi-arrows-move opacity-50"></i>
+                        </div>
+                        <div id="video-placeholder" class="video-overlay-off" style="display: flex; background: black;">
+                            <div class="spinner-grow text-secondary mb-2" role="status"></div>
+                            <small class="text-white-50">Esperando conexión...</small>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 3. PIZARRA CON PAGINACIÓN -->
+                <div class="w-100 h-100 rounded border shadow-sm position-relative" id="pizarra-wrapper">
+                    <div class="pagination-bar">
+                        <button class="btn btn-light btn-sm rounded-circle border" onclick="prevPage()" title="Anterior"><i class="bi bi-chevron-left"></i></button>
+                        <span class="page-indicator" id="page-display">1 / 1</span>
+                        <button class="btn btn-light btn-sm rounded-circle border" onclick="nextPage()" title="Siguiente"><i class="bi bi-chevron-right"></i></button>
+                        
+                        <div class="vr mx-1"></div>
+                        
+                        <!-- BOTÓN AÑADIR -->
+                        <button class="btn btn-primary btn-sm rounded-circle shadow-sm" onclick="addPage()" title="Nueva Página"><i class="bi bi-plus-lg"></i></button>
+                        
+                        <!-- BOTÓN ELIMINAR (NUEVO) -->
+                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm ms-2" onclick="removePage()" title="Eliminar Página Actual">
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                    </div>
+                    <div id="pizarra-content">
+                        <div id="remote-cursor" class="remote-cursor">
+                            <div class="remote-cursor-label">{% if rol == 'Profesor' %}Alumno{% else %}Profesor{% endif %}</div>
+                        </div>
+                        <div id="pizarra-container" style="width: 100%; height: 100%;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA -->
+        <div class="col-lg-3 d-flex flex-column gap-3 h-100">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-2 bg-black rounded">
+                    <div id="local-video-container" class="video-container" style="border: none; height: auto; min-height: 40px;">
+                        <button class="btn-hide-video" onclick="toggleVideoContainer('local-video-container')" title="Minimizar"><i class="bi bi-dash-lg"></i></button>
+                        <div class="ratio ratio-16x9 video-content-wrapper">
+                            <video id="local-video" autoplay muted playsinline class="video-element" style="transform: scaleX(-1);"></video>
+                            <div id="local-camera-overlay" class="video-overlay-off"><i class="bi bi-camera-video-off display-4"></i></div>
+                            <div class="video-controls-bar">
+                                <button onclick="toggleAudio()" id="btn-audio" class="btn-video-control inactive" title="Micrófono"><i class="bi bi-mic-mute-fill"></i></button>
+                                <button onclick="toggleVideo()" id="btn-video" class="btn-video-control inactive" title="Cámara"><i class="bi bi-camera-video-off-fill"></i></button>
+                            </div>
+                        </div>
+                        <div class="position-absolute bottom-0 start-0 m-2 badge bg-primary opacity-75" style="z-index:20; pointer-events: none;">Tú</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card border-0 shadow-sm flex-grow-1 d-flex flex-column overflow-hidden">
+                <div class="card-header bg-white border-bottom fw-bold py-3">Chat</div>
+                <div class="card-body bg-light overflow-auto d-flex flex-column gap-2" id="chat-box"></div>
+                <div class="p-3 bg-white border-top">
+                    <div class="input-group">
+                        <input type="text" id="chat-input" class="form-control" placeholder="Escribe..." disabled>
+                        <button class="btn btn-primary" id="btn-send" onclick="sendMessage()" disabled><i class="bi bi-send-fill"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- VARIABLES GLOBALES ---
+    const ROOM_ID = "{{ room_id }}";
+    const ES_DOCENTE = "{{ rol }}" === "Profesor";
+    const MY_ID = `sala_${ROOM_ID}_${ES_DOCENTE ? 'docente' : 'estudiante'}`;
+    const TARGET_ID = `sala_${ROOM_ID}_${ES_DOCENTE ? 'estudiante' : 'docente'}`;
+    const CLASE_ID_REAL = "{{ clase_id_real }}";
+    const INITIAL_DATA_JSON = '{{ datos_pizarra_inicial|escapejs }}';
+    
+    let pages = [ [] ]; 
+    let currentPage = 0;
+    try {
+        const parsed = JSON.parse(INITIAL_DATA_JSON || '[]');
+        if (Array.isArray(parsed) && parsed.length > 0) {
+            if (!Array.isArray(parsed[0])) pages = [parsed];
+            else pages = parsed;
+        }
+    } catch(e) { console.error("Error parse:", e); }
+
+    let localStream = null, peer = null, conn = null, call = null, excalidrawAPI = null, retryInterval = null;
+    let mediaState = { audio: false, video: false };
+    
+    // VARIABLES GRABACIÓN
+    let mediaRecorder;
+    let recordedChunks = [];
+    let isRecording = false;
+
+    // --- LOGICA UI ---
+    window.toggleVideoContainer = function(c) {
+        const el = document.getElementById(c), ic = el.querySelector('.btn-hide-video i');
+        if(el.classList.contains('video-minimized')) {
+            el.classList.remove('video-minimized'); ic.classList.replace('bi-square','bi-dash-lg');
+            if(c==='remote-video-container') el.style.height='150px';
+        } else {
+            el.classList.add('video-minimized'); ic.classList.replace('bi-dash-lg','bi-square');
+            if(c==='remote-video-container') el.style.height='40px';
+        }
+    };
+    const dragElement = document.getElementById("draggable-video");
+    let isD = false, sX, sY, iL, iT;
+    dragElement.addEventListener('mousedown', (e) => {
+        if(e.target.closest('.btn-hide-video') || e.button !== 0) return;
+        e.preventDefault(); isD=true; sX=e.clientX; sY=e.clientY;
+        const s = window.getComputedStyle(dragElement); iL=parseInt(s.left,10); iT=parseInt(s.top,10);
+        dragElement.style.cursor='grabbing';
+        document.addEventListener('mousemove', onMM); document.addEventListener('mouseup', onMU);
+    });
+    function onMM(e) { if(!isD) return; e.preventDefault(); dragElement.style.left=`${iL+(e.clientX-sX)}px`; dragElement.style.top=`${iT+(e.clientY-sY)}px`; }
+    function onMU() { isD=false; dragElement.style.cursor='grab'; document.removeEventListener('mousemove', onMM); document.removeEventListener('mouseup', onMU); }
+    function showToast(m) { const c=document.getElementById('toast-container'),d=document.createElement('div'); d.className='toast-msg'; d.innerText=m; c.appendChild(d); setTimeout(()=>d.remove(),4000); }
+
+    // --- LOGICA DE GRABACIÓN ---
+    async function toggleRecording() {
+        const btn = document.getElementById('btn-record');
+        if (!isRecording) {
+            try {
+                const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: { mediaSource: "screen" }, audio: true });
+                if (localStream && localStream.getAudioTracks().length > 0) {
+                    const audioContext = new AudioContext();
+                    const dest = audioContext.createMediaStreamDestination();
+                    const micSource = audioContext.createMediaStreamSource(localStream);
+                    const sysSource = audioContext.createMediaStreamSource(displayStream);
+                    micSource.connect(dest); sysSource.connect(dest);
+                    displayStream.removeTrack(displayStream.getAudioTracks()[0]);
+                    displayStream.addTrack(dest.stream.getAudioTracks()[0]);
+                }
+                mediaRecorder = new MediaRecorder(displayStream, { mimeType: 'video/webm; codecs=vp9' });
+                mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href = url; a.download = `Clase-${new Date().toISOString().replace(/[:.]/g, '-')}.webm`;
+                    document.body.appendChild(a); a.click(); window.URL.revokeObjectURL(url);
+                    isRecording = false; recordedChunks = [];
+                    btn.className = "btn btn-outline-danger btn-sm d-flex align-items-center bg-white shadow-sm";
+                    btn.innerHTML = '<i class="bi bi-record-circle me-1"></i> Grabar';
+                    showToast("Grabación guardada.");
+                    displayStream.getTracks().forEach(t => t.stop());
+                };
+                mediaRecorder.start(); isRecording = true;
+                btn.className = "btn btn-danger btn-sm d-flex align-items-center shadow-sm text-white";
+                btn.innerHTML = '<span class="recording-dot"></span> Grabando...';
+                showToast("🔴 Grabación iniciada.");
+            } catch (err) { console.error(err); showToast("Error al grabar."); }
+        } else { mediaRecorder.stop(); }
+    }
+
+    // --- INICIO ---
+    const constraints = { video: { width: { ideal: 640 }, height: { ideal: 480 } }, audio: true };
+    navigator.mediaDevices.getUserMedia(constraints).then(s => {
+        localStream = s;
+        document.getElementById('local-video').srcObject = s;
+        document.getElementById('local-video').muted = true;
+        s.getAudioTracks()[0].enabled = false; s.getVideoTracks()[0].enabled = false;
+        updateLocalControlsUI();
+        document.getElementById('local-camera-overlay').style.display = 'flex';
+        initPeer();
+    }).catch(e => { console.error(e); showToast("⚠️ Sin cámara"); initPeer(); });
+
+    function initPeer() {
+        peer = new Peer(MY_ID, { debug: 1, config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+        peer.on('open', (id) => { document.getElementById('status-badge').innerHTML = 'Buscando...'; startConnectionLoop(); });
+        peer.on('call', (inc) => { if(localStream) inc.answer(localStream); else inc.answer(); handleCall(inc); });
+        peer.on('connection', (c) => setupDataConnection(c));
+    }
+
+    function startConnectionLoop() { if(conn) return; attemptConnection(); if(!retryInterval) retryInterval=setInterval(()=>{if(!conn) attemptConnection();},3000); }
+    function attemptConnection() { const c = peer.connect(TARGET_ID); c.on('open', ()=>setupDataConnection(c)); }
+    function setupDataConnection(c) {
+        if(conn) return; conn = c; clearInterval(retryInterval);
+        document.getElementById('status-badge').className="badge bg-success px-3 py-2 text-white";
+        document.getElementById('status-badge').innerHTML='Conectado';
+        document.getElementById('chat-input').disabled=false; document.getElementById('btn-send').disabled=false;
+        showToast("✅ Conectado");
+
+        sendMediaStatus();
+        if(excalidrawAPI) { conn.send({ type: 'FULL_SYNC', pages: pages, currentPage: currentPage }); }
+
+        if(!ES_DOCENTE && localStream) { const out = peer.call(TARGET_ID, localStream); handleCall(out); }
+
+        conn.on('data', handleDataMessage);
+        conn.on('close', () => { conn=null; document.getElementById('status-badge').className="badge bg-danger px-3 py-2"; document.getElementById('status-badge').innerHTML='Desconectado'; startConnectionLoop(); });
+    }
+
+    function handleCall(c) {
+        if(call) call.close(); call = c;
+        c.on('stream', (rs) => {
+            const v = document.getElementById('remote-video'); v.srcObject = rs;
+            v.play().catch(e=>{}); document.getElementById('video-placeholder').style.display='none';
+        });
+        c.on('close', () => document.getElementById('video-placeholder').style.display='flex');
+    }
+    window.forceVideoReconnect = function() { if(!conn||!localStream) return alert("No listo"); const out = peer.call(TARGET_ID, localStream); handleCall(out); };
+
+    // --- REACT EXCALIDRAW ---
+    const { useState, useEffect, createElement } = React;
+    const { createRoot } = ReactDOM;
+    const { Excalidraw } = ExcalidrawLib;
+    const PizarraApp = () => {
+        const [api, setApi] = useState(null);
+        useEffect(() => { 
+            if(api) {
+                excalidrawAPI = api;
+                setTimeout(updatePageUI, 500); 
+            } 
+        }, [api]);
+        return createElement("div", { style: { height: "100%", width: "100%" } },
+            createElement(Excalidraw, { 
+                langCode: "es-ES", excalidrawAPI: (api) => setApi(api), 
+                initialData: { elements: pages[0], appState: { viewBackgroundColor: "#ffffff" } },
+                viewModeEnabled: false, zenModeEnabled: false, gridModeEnabled: false, 
+                UIOptions: { canvasActions: { loadScene: false, saveToActiveFile: false, toggleTheme: false, clearCanvas: true } } 
+            })
+        );
+    };
+
+
+
+    // BLOQUEAR SCROLL INFINITO
+    const root = createRoot(document.getElementById("pizarra-container"));
+    root.render(createElement(PizarraApp));
+
+    // Esto captura la rueda del mouse ANTES de que Excalidraw la detecte
+    // y cancela el movimiento, dejando la pizarra fija.
+    const container = document.getElementById("pizarra-container");
+    
+    container.addEventListener("wheel", function(e) {
+        e.preventDefault();    // Evita el scroll/zoom nativo
+        e.stopPropagation();   // Evita que Excalidraw reciba el evento
+    }, { passive: false, capture: true }); // 'capture: true' es vital para interceptarlo primero
+    // --------------------
+
+
+
+
+
+
+    // --- GUARDAR EN BD ---
+    async function saveToBackend() {
+        saveCurrentPageState(); 
+        try {
+            await fetch(`/api/pizarra/guardar/${CLASE_ID_REAL}/`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ elements: pages }) 
+            });
+        } catch(e) { console.error("Error save:", e); }
+    }
+
+    // --- DATOS Y PAGINACIÓN ---
+    function handleDataMessage(payload) {
+        if(typeof payload === 'string') addChatMessage("El otro", payload, false);
+        else if(payload.type === 'MEDIA_STATUS') updateRemoteMediaUI(payload);
+        else if(payload.type === 'CURSOR_MOVE') updateRemoteCursor(payload.x, payload.y);
+        else if(payload.type === 'PIZARRA_UPDATE') { 
+            if (payload.pageIndex === undefined || payload.pageIndex === currentPage) {
+                if(excalidrawAPI) excalidrawAPI.updateScene({ elements: payload.data }); 
+            }
+            const targetPage = payload.pageIndex !== undefined ? payload.pageIndex : currentPage;
+            pages[targetPage] = payload.data;
+        }
+        else if(payload.type === 'PAGE_EVENT') {
+            if (payload.action === 'ADD') { if (pages.length < payload.total) pages.push([]); showToast("El profesor agregó una página"); }
+            if (payload.action === 'REMOVE') { // Lógica para recibir eliminación remota
+                pages.splice(payload.pageIndex, 1);
+                if (pages.length === 0) pages = [ [] ]; // Siempre debe haber al menos una
+                // Ajustar currentPage si es necesario
+                if (currentPage >= pages.length) currentPage = pages.length - 1;
+                
+                // Limpiar y recargar
+                if (excalidrawAPI) excalidrawAPI.resetScene();
+                updatePageUI();
+                showToast("El profesor eliminó una página");
+            }
+            if (payload.action === 'NAV' || payload.action === 'ADD' || payload.action === 'REMOVE') {
+                 saveCurrentPageState(); 
+                 // Si no fue remove o si es remove y currentPage cambió
+                 if (payload.action !== 'REMOVE' || payload.pageIndex === currentPage) {
+                     currentPage = payload.pageIndex_new !== undefined ? payload.pageIndex_new : currentPage;
+                 }
+                 if(excalidrawAPI) excalidrawAPI.resetScene(); updatePageUI(); 
+            }
+        }
+        else if(payload.type === 'FULL_SYNC') {
+            pages = payload.pages; currentPage = payload.currentPage;
+            if(excalidrawAPI) excalidrawAPI.resetScene(); updatePageUI();
+        }
+    }
+
+    // UI Paginación
+    function updatePageUI() {
+        document.getElementById('page-display').innerText = `${currentPage + 1} / ${pages.length}`;
+        if (excalidrawAPI) { excalidrawAPI.updateScene({ elements: pages[currentPage] }); }
+    }
+    function saveCurrentPageState() { if (excalidrawAPI) pages[currentPage] = excalidrawAPI.getSceneElements(); }
+    
+    window.addPage = function() { 
+        saveCurrentPageState(); pages.push([]); currentPage = pages.length - 1; 
+        if(excalidrawAPI) excalidrawAPI.resetScene(); updatePageUI(); 
+        syncPagination('ADD'); saveToBackend(); 
+    };
+    
+    window.prevPage = function() { 
+        if (currentPage > 0) { 
+            saveCurrentPageState(); currentPage--; 
+            if(excalidrawAPI) excalidrawAPI.resetScene(); updatePageUI(); 
+            syncPagination('NAV'); saveToBackend(); 
+        } 
+    };
+    
+    window.nextPage = function() { 
+        if (currentPage < pages.length - 1) { 
+            saveCurrentPageState(); currentPage++; 
+            if(excalidrawAPI) excalidrawAPI.resetScene(); updatePageUI(); 
+            syncPagination('NAV'); saveToBackend(); 
+        } 
+    };
+
+    // NUEVA FUNCIÓN: ELIMINAR PÁGINA
+    window.removePage = function() {
+        if (!confirm("¿Estás seguro de eliminar esta página?")) return;
+        
+        // Eliminar página actual
+        pages.splice(currentPage, 1);
+        
+        // Si borramos la última (o única), asegurar que quede al menos una
+        if (pages.length === 0) pages = [ [] ];
+        
+        // Ajustar índice si estábamos en la última
+        if (currentPage >= pages.length) currentPage = pages.length - 1;
+        
+        // Refrescar vista
+        if(excalidrawAPI) excalidrawAPI.resetScene();
+        updatePageUI();
+        
+        // Sincronizar: enviamos acción REMOVE e índice nuevo
+        if (conn) {
+            conn.send({ 
+                type: 'PAGE_EVENT', 
+                action: 'REMOVE', 
+                pageIndex: currentPage, // Página que se borró (o la que quedó)
+                pageIndex_new: currentPage, // A donde ir
+                total: pages.length
+            });
+        }
+        saveToBackend();
+    };
+
+    function syncPagination(action) { 
+        if (conn) { 
+            conn.send({ 
+                type: 'PAGE_EVENT', 
+                action: action, 
+                pageIndex: currentPage, // Indice destino
+                total: pages.length 
+            }); 
+        } 
+    }
+
+    const wrapper = document.getElementById('pizarra-content');
+    const cursor = document.getElementById('remote-cursor');
+    wrapper.addEventListener('pointermove', (e) => {
+        if(!conn) return; const r = wrapper.getBoundingClientRect();
+        conn.send({ type: 'CURSOR_MOVE', x: (e.clientX-r.left)/r.width, y: (e.clientY-r.top)/r.height });
+    });
+    function updateRemoteCursor(x, y) {
+        const r = wrapper.getBoundingClientRect(); cursor.style.display = 'block';
+        cursor.style.transform = `translate(${x*r.width}px, ${y*r.height}px)`;
+    }
+    wrapper.addEventListener('pointerup', () => {
+        if(excalidrawAPI) {
+            const els = excalidrawAPI.getSceneElements();
+            if(conn) conn.send({ type: 'PIZARRA_UPDATE', data: els, pageIndex: currentPage });
+            saveToBackend();
+        }
+    });
+
+    function sendMessage() {
+        const i = document.getElementById('chat-input'); if(!i.value||!conn) return;
+        conn.send(i.value); addChatMessage("Tú", i.value, true); i.value = "";
+    }
+    function addChatMessage(s, t, m) {
+        const b = document.getElementById('chat-box'), a = m ? "align-self-end text-end" : "align-self-start text-start", c = m ? "bg-primary text-white" : "bg-white border text-dark";
+        b.innerHTML += `<div class="${a} mb-2"><div class="p-2 rounded ${c}">${t}</div></div>`; b.scrollTop = b.scrollHeight;
+    }
+    document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key==='Enter') sendMessage(); });
+
+    function toggleAudio() { 
+        if(!localStream) return;
+        const t = localStream.getAudioTracks()[0]; mediaState.audio = !mediaState.audio; t.enabled = mediaState.audio;
+        updateLocalControlsUI(); sendMediaStatus();
+    }
+    function toggleVideo() { 
+        if(!localStream) return;
+        const t = localStream.getVideoTracks()[0]; mediaState.video = !mediaState.video; t.enabled = mediaState.video;
+        updateLocalControlsUI(); document.getElementById('local-camera-overlay').style.display = mediaState.video ? 'none' : 'flex';
+        sendMediaStatus();
+    }
+    function updateLocalControlsUI() {
+        const a = document.getElementById('btn-audio'), v = document.getElementById('btn-video');
+        a.className = mediaState.audio ? "btn-video-control active" : "btn-video-control inactive";
+        a.innerHTML = mediaState.audio ? '<i class="bi bi-mic-fill"></i>' : '<i class="bi bi-mic-mute-fill"></i>';
+        v.className = mediaState.video ? "btn-video-control active" : "btn-video-control inactive";
+        v.innerHTML = mediaState.video ? '<i class="bi bi-camera-video-fill"></i>' : '<i class="bi bi-camera-video-off-fill"></i>';
+    }
+    function sendMediaStatus() { if(conn) conn.send({ type: 'MEDIA_STATUS', audio: mediaState.audio, video: mediaState.video }); }
+    function updateRemoteMediaUI(s) {
+        document.getElementById('remote-camera-overlay').style.display = s.video ? 'none' : 'flex';
+        document.getElementById('remote-mic-badge').style.display = s.audio ? 'none' : 'block';
+    }
+</script>
+{% endblock %}

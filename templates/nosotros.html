@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %} {% block title %} Sobre Nosotros {% endblock %}
+
+{% block content %}
+
+<div class="flex-centrado" style="margin-top: 30px; margin-bottom: 30px;">
+
+    <div class="content-card">
+
+        <h2 class="texto-centrado">Sobre Nosotros</h2>        
+        <p style="text-align: justify; margin-top: 15px;">
+            Bienvenido a <strong>Estudiante Integral</strong>, tu espacio de tutoría y colaboración online. Nacimos de la idea de que cada estudiante merece acceso a una educación personalizada y de calidad, sin importar dónde se encuentre. Nuestra plataforma conecta a estudiantes motivados con docentes expertos en una variedad de asignaturas, creando un entorno de aprendizaje flexible, efectivo e interactivo.
+        </p>
+
+        <hr style="margin: 25px 0;">
+
+        <h2 class="texto-centrado">Nuestra Misión</h2>
+        
+        <img class="img-centrada" src="{% static 'images/mision.jpg' %}" alt="Nuestra Misión" style="max-width: 200px;">
+        
+        <p style="text-align: justify; margin-top: 15px;">
+            Nuestra misión es democratizar el acceso a la educación de alta calidad. Nos esforzamos por proporcionar las herramientas tecnológicas y la red de apoyo necesarias para que los estudiantes alcancen su máximo potencial académico y los docentes puedan compartir su pasión por el conocimiento de manera efectiva.
+        </p>
+
+        <hr style="margin: 25px 0;">
+
+        <h2 class="texto-centrado">Nuestra Visión</h2>
+        
+        <img class="img-centrada" src="{% static 'images/Vision.jpg' %}" alt="Nuestra Visión" style="max-width: 200px;">
+        
+        <p style="text-align: justify; margin-top: 15px;">
+            Nuestra visión es ser la plataforma de aprendizaje online líder en Chile y Latinoamérica, reconocida por nuestra innovación, la calidad de nuestros docentes y el éxito de nuestros estudiantes. Aspiramos a construir una comunidad educativa vibrante donde el aprendizaje sea una experiencia colaborativa e inspiradora.
+        </p>
+
+    </div> </div> {% endblock %}

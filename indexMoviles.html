@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estudiante Integral - Prototipo MVP</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f7f9fb;
+        }
+        /* Colores basados en el logo: Azul primario y Verde secundario */
+        .bg-primary { background-color: #004c99; }
+        .text-primary { color: #004c99; }
+        .bg-secondary { background-color: #5abf86; }
+        .text-secondary { color: #5abf86; }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Navbar -->
+    <header class="bg-primary text-white shadow-lg sticky top-0 z-10">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo y Nombre -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="#" onclick="navigate('home')" class="text-2xl font-extrabold tracking-tight">Estudiante Integral</a>
+                </div>
+                
+                <!-- Menú de Desktop (Visible en sm y superior) -->
+                <div class="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-4">
+                    <!-- Enlaces de Navegación -->
+                    <a href="#" onclick="navigate('buscar-tutor')" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-white hover:text-primary transition-colors">Buscar Tutor</a>
+                    <a href="#" onclick="navigate('soy-estudiante')" class="bg-secondary text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-green-600 transition-colors">Soy Estudiante</a>
+                    
+                    <!-- Botón de Login/Usuario -->
+                    <button onclick="navigate('login')" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-colors shadow-md ml-4">
+                        <svg class="w-5 h-5 inline-block mr-1 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3v-1m18-10V4a3 3 0 00-3-3h-4"></path></svg>
+                        Acceder
+                    </button>
+                </div>
+                
+                <!-- Botón de Menú Móvil (Hamburguesa - Visible en 'sm' o menos) -->
+                <div class="flex sm:hidden">
+                    <button id="menu-button" onclick="toggleMobileMenu()" class="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                        <svg class="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Menú Desplegable Móvil -->
+        <div id="mobile-menu" class="hidden sm:hidden bg-primary pb-2">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <!-- Enlaces móviles ahora visibles -->
+                <a href="#" onclick="navigate('buscar-tutor')" class="block px-3 py-2 rounded-md text-base font-medium text-white hover:bg-indigo-600 transition-colors">Buscar Tutor</a>
+                <a href="#" onclick="navigate('soy-estudiante')" class="block px-3 py-2 rounded-md text-base font-medium bg-secondary text-white hover:bg-green-600 transition-colors">Soy Estudiante</a>
+                <a href="#" onclick="navigate('login')" class="block px-3 py-2 rounded-md text-base font-medium bg-indigo-500 text-white hover:bg-indigo-600 transition-colors mt-1">Acceder</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full">
+        <div id="content-area">
+            <!-- El contenido se inyecta aquí -->
+        </div>
+    </main>
+
+    <!-- Footer simple (opcional) -->
+    <footer class="bg-gray-200 text-gray-600 text-center p-4 mt-auto">
+        <p class="text-sm">&copy; 2025 Estudiante Integral. Todos los derechos reservados.</p>
+    </footer>
+
+
+    <script>
+        // --- Variables de Estado ---
+        let currentView = 'home';
+        const contentArea = document.getElementById('content-area');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        // --- Navegación y Vistas ---
+        function navigate(view) {
+            currentView = view;
+            renderView();
+            // Asegura que el menú móvil se cierre al navegar
+            if (!mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        }
+
+        // --- Toggle del Menú Móvil (Hamburguesa) ---
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        function renderIcon(dPath) {
+            return `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${dPath}"></path></svg>`;
+        }
+        
+        function renderStatCard(title, value, iconD, colorClass) {
+            return `
+                <div class="bg-white p-5 rounded-xl shadow-md transition-shadow hover:shadow-lg flex items-center justify-between border-b-4 ${colorClass}">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500">${title}</p>
+                        <p class="text-2xl font-bold text-gray-800 mt-1">${value}</p>
+                    </div>
+                    <div class="text-3xl ${colorClass.replace('border-b-4', 'text-opacity-70')}">
+                        ${renderIcon(iconD)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderView() {
+            let html = '';
+
+            switch (currentView) {
+                case 'home':
+                case 'buscar-tutor':
+                    // Vista de Búsqueda y Home (Adaptada al diseño de la imagen)
+                    html = `
+                        <div class="space-y-8">
+                            <!-- SECCIÓN 1: Banner y Búsqueda Principal (Responsive) -->
+                            <div class="bg-white p-6 md:p-10 rounded-xl shadow-2xl text-center">
+                                <h1 class="text-4xl md:text-5xl font-extrabold text-primary mb-3">
+                                    Encuentra tu Clase Perfecta
+                                </h1>
+                                <p class="text-lg text-gray-600 mb-8">
+                                    Agenda sesiones individuales con tutores expertos.
+                                </p>
+                                
+                                <!-- Formulario de Búsqueda centralizado -->
+                                <div class="flex flex-col md:flex-row gap-3 max-w-xl mx-auto">
+                                    <div class="relative flex-grow">
+                                        <!-- Icono de Lupa para el diseño (visible en móvil y desktop) -->
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            ${renderIcon('M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z')}
+                                        </div>
+                                        <input type="text" placeholder="¿Qué necesitas aprender hoy? (ej: Cálculo, Python, Historia...)" 
+                                            class="w-full p-3 pl-12 border-2 border-primary rounded-xl focus:ring-primary focus:border-primary shadow-lg transition-all duration-200">
+                                    </div>
+                                    <button onclick="alertUser('Buscando tutores...', 'info')" 
+                                            class="bg-secondary text-white font-bold py-3 px-6 rounded-xl hover:bg-green-600 transition-colors shadow-lg flex items-center justify-center">
+                                        Buscar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- SECCIÓN 2: Filtros Rápidos / Materias Populares (Responsive Scroll) -->
+                            <div class="py-4">
+                                <h2 class="text-2xl font-bold text-gray-700 mb-4 px-2">Temas Populares</h2>
+                                <!-- Contenedor con scroll horizontal para móvil -->
+                                <div class="flex space-x-3 overflow-x-auto pb-2 px-2 sm:overflow-x-visible sm:justify-start">
+                                    ${renderFilterButton('Matemáticas', 'M3 3h2l.065.326A7 7 0 0012 18h4.51c1.173 0 2.217-.605 2.766-1.574l2.58-4.298a1 1 0 00-.546-1.425l-2.738-1.564a.998.998 0 00-1.425.546l-2.58 4.298C15.986 17.395 14.942 18 13.77 18H12a5 5 0 01-4.935-4.674L7 12H5a2 2 0 01-2-2V4z', 'bg-red-100 text-red-700')}
+                                    ${renderFilterButton('Programación', 'M10 20a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1h16a1 1 0 011 1v10a1 1 0 01-1 1h-5a1 1 0 00-.707.293l-3 3a1 1 0 01-1.414 0l-3-3A1 1 0 0010 20z', 'bg-blue-100 text-blue-700')}
+                                    ${renderFilterButton('Historia', 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', 'bg-green-100 text-green-700')}
+                                    ${renderFilterButton('Idiomas', 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m4 2l4 4 4-4m-4 4V3', 'bg-purple-100 text-purple-700')}
+                                </div>
+                            </div>
+
+                            <!-- SECCIÓN 3: Tutores Destacados -->
+                            <div class="pt-4">
+                                <h2 class="text-2xl font-bold text-gray-700 mb-6 border-b pb-2 px-2">Tutores Destacados</h2>
+                                <div class="space-y-6">
+                                    ${renderTutorCard('Juan Pérez', 'Cálculo Avanzado', '4.8', 'bg-white', 'Calculo.pdf')}
+                                    ${renderTutorCard('María López', 'Historia Contemporánea', '5.0', 'bg-white', 'Guía Histórica.doc')}
+                                    ${renderTutorCard('Diego Arcos', 'Desarrollo Web (MVP)', '4.6', 'bg-white', 'API Design.json')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'soy-estudiante':
+                    // Vista del Estudiante (Dashboard) - Mantenemos la versión anterior
+                    html = `
+                        <div class="space-y-8">
+                            <!-- Cabecera y Saludo -->
+                            <h1 class="text-4xl font-extrabold text-primary">Hola, María</h1>
+
+                            <!-- Dashboard de Estadísticas (Grid adaptable: 2 columnas en móvil, 4 en desktop) -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                ${renderStatCard(
+                                    'Clases Agendadas', 
+                                    '4', 
+                                    'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-4 0V3m0 2h4m-4 0h-4m2 0v16', // Icono: Calendario/Libreta
+                                    'border-blue-500'
+                                )}
+                                ${renderStatCard(
+                                    'Avance', 
+                                    '75%', 
+                                    'M14 10l-2 1m0 0l-2 1m2-1V7m0 4v3m0 0h-4m4 0h4m-4-7h-4m8 0h-4m-4-4h-4m8 0h-4m-4-4h-4m8 0h-4m-4-4h-4', // Icono: Progreso/Gráfico
+                                    'border-green-500'
+                                )}
+                                ${renderStatCard(
+                                    'Tareas Pendientes', 
+                                    '2', 
+                                    'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z', // Icono: Carpeta
+                                    'border-red-500'
+                                )}
+                                ${renderStatCard(
+                                    'Archivos Compartidos', 
+                                    '12', 
+                                    'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4', // Icono: Descarga/Cloud
+                                    'border-yellow-500'
+                                )}
+                            </div>
+
+                            <!-- Próximas Clases (Lista de tarjetas - apilado en móvil) -->
+                            <div class="bg-white p-6 rounded-xl shadow-xl">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                                    ${renderIcon('M8 7V3m8 4V3m-4 4V3m-4 0H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2h-2')}
+                                    <span class="ml-2">Próximas Clases</span>
+                                </h3>
+                                <div class="space-y-3">
+                                    ${renderClassCard('Juan Pérez', 'Cálculo Diferencial', 'Jueves 18 Nov', '18:00', 'bg-blue-50')}
+                                    ${renderClassCard('Catalina Soto', 'Historia de Chile', 'Lunes 22 Nov', '16:30', 'bg-green-50')}
+                                </div>
+                            </div>
+                            
+                            <!-- Archivos Compartidos (Lista compacta - apilado en móvil) -->
+                            <div class="bg-white p-6 rounded-xl shadow-xl">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
+                                    ${renderIcon('M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4')}
+                                    <span class="ml-2">Archivos de Clases</span>
+                                </h3>
+                                <div class="space-y-3">
+                                    ${renderFileCard('Guía de Ecuaciones.pdf', 'Juan Pérez', '2.5 MB', 'bg-red-50')}
+                                    ${renderFileCard('Resumen Guerra Pacífico.docx', 'Catalina Soto', '0.8 MB', 'bg-indigo-50')}
+                                    ${renderFileCard('Ejercicios Python.zip', 'Diego Arcos', '10.1 MB', 'bg-yellow-50')}
+                                </div>
+                            </div>
+
+                        </div>
+                    `;
+                    break;
+                case 'login':
+                    // Vista de Login/Acceder
+                    html = `
+                        <div class="flex justify-center items-center h-full min-h-[60vh] p-4">
+                            <div class="w-full max-w-sm bg-white p-8 rounded-xl shadow-2xl">
+                                <h2 class="text-3xl font-extrabold text-primary mb-6 text-center">Acceder</h2>
+                                <form onsubmit="event.preventDefault(); alertUser('Inicio de sesión simulado', 'success'); navigate('soy-estudiante');">
+                                    <div class="mb-4">
+                                        <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico</label>
+                                        <input type="email" id="email" required class="shadow appearance-none border rounded-xl w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-primary">
+                                    </div>
+                                    <div class="mb-6">
+                                        <label for="password" class="block text-gray-700 text-sm font-bold mb-2">Contraseña</label>
+                                        <input type="password" id="password" required class="shadow appearance-none border rounded-xl w-full py-3 px-4 text-gray-700 mb-3 leading-tight focus:outline-none focus:ring-2 focus:ring-primary">
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <button type="submit" class="w-full bg-primary hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl focus:outline-none focus:shadow-outline transition-colors shadow-lg">
+                                            Ingresar
+                                        </button>
+                                    </div>
+                                    <p class="text-center text-sm mt-4 text-gray-500">¿No tienes cuenta? <a href="#" onclick="alertUser('Redireccionando a Registro...', 'info')" class="text-primary hover:text-indigo-600 font-semibold transition-colors">Regístrate</a></p>
+                                </form>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                default:
+                    html = `<div class="text-center p-10 text-xl text-red-500">Vista no encontrada.</div>`;
+            }
+            contentArea.innerHTML = html;
+        }
+
+        // --- Componentes Reutilizables ---
+        
+        function renderTutorCard(name, subject, rating, bgColor, resourceName) {
+            return `
+                <div class="${bgColor} p-4 rounded-xl shadow-lg border border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between transition-shadow hover:shadow-xl">
+                    <!-- Sección de Info -->
+                    <div class="flex-grow mb-4 sm:mb-0">
+                        <p class="text-xl font-bold text-gray-800">${name}</p>
+                        <p class="text-primary font-semibold">${subject}</p>
+                        <div class="flex items-center mt-1 text-sm text-yellow-600">
+                            <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.071 3.297a1 1 0 00.95.69h3.473c.969 0 1.371 1.24.588 1.81l-2.817 2.046a1 1 0 00-.364 1.118l1.071 3.297c.3.921-.755 1.688-1.54 1.118l-2.817-2.046a1 1 0 00-1.175 0l-2.817 2.046c-.785.57-1.84-.197-1.54-1.118l1.071-3.297a1 1 0 00-.364-1.118L2.091 8.724c-.783-.57-.381-1.81.588-1.81h3.473a1 1 0 00.95-.69l1.07-3.297z"></path></svg>
+                            <span>${rating}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Sección de Acciones (Botones se apilan en móvil) -->
+                    <div class="flex flex-col space-y-2 w-full sm:w-auto sm:flex-row sm:space-y-0 sm:space-x-2">
+                        <button onclick="alertUser('Agendando clase con ${name}...', 'info')" class="bg-primary text-white font-semibold py-2 px-4 rounded-xl hover:bg-indigo-600 transition-colors shadow-md text-sm">Agendar</button>
+                        <button onclick="alertUser('Recurso: ${resourceName} descargado.', 'success')" class="bg-secondary text-white font-semibold py-2 px-4 rounded-xl hover:bg-green-600 transition-colors shadow-md text-sm">Recursos</button>
+                    </div>
+
+                    <!-- Recurso oculto (Originalmente en el HTML) -->
+                    <div class="hidden">
+                        <div class="mt-4">
+                            <p class="font-bold text-gray-700">Recursos de ${name}:</p>
+                            <ul class="list-disc list-inside ml-4">
+                                <li class="text-gray-600">${resourceName}</li>
+                                <li class="text-gray-600">Ecuaciones Clave.jpg</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFilterButton(label, iconD, colorClass) {
+            // Este botón está diseñado para el scroll horizontal en móvil
+            return `
+                <button onclick="alertUser('Filtrando por ${label}', 'info')" class="flex items-center space-x-2 py-2 px-4 rounded-xl font-semibold text-sm transition-transform transform hover:scale-105 flex-shrink-0 ${colorClass}">
+                    ${renderIcon(iconD)}
+                    <span>${label}</span>
+                </button>
+            `;
+        }
+
+
+        function renderClassCard(tutor, subject, date, time, bgColor) {
+            return `
+                <div class="${bgColor} p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row items-start md:items-center justify-between">
+                    <!-- Info de Clase -->
+                    <div class="flex-grow mb-3 md:mb-0">
+                        <p class="text-lg font-bold text-gray-800">${subject}</p>
+                        <p class="text-sm text-gray-600">Con: ${tutor}</p>
+                        <p class="text-sm text-primary font-semibold">${date} a las ${time} hrs</p>
+                    </div>
+                    
+                    <!-- Botón de Acción -->
+                    <button onclick="alertUser('Conectando a la clase de ${subject}', 'success')" class="w-full md:w-auto bg-primary text-white font-bold py-2 px-4 rounded-xl hover:bg-indigo-600 transition-colors shadow-md text-sm">
+                        <span class="md:hidden">Ir a Clase</span>
+                        <span class="hidden md:inline">Acceder al Aula</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderFileCard(fileName, tutor, size, bgColor) {
+            return `
+                <div class="${bgColor} p-3 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between">
+                    <!-- Info de Archivo -->
+                    <div class="flex-grow flex items-center min-w-0">
+                         ${renderIcon('M4 4v16a2 2 0 002 2h12a2 2 0 002-2V8a2 2 0 00-2-2h-4l-2-3H6a2 2 0 00-2 2z')}
+                        <div class="ml-3 min-w-0">
+                            <p class="text-sm font-semibold text-gray-800 truncate">${fileName}</p>
+                            <p class="text-xs text-gray-500">Tutor: ${tutor} | ${size}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Botón de Descarga -->
+                    <button onclick="alertUser('Descargando ${fileName}...', 'info')" class="text-primary hover:text-indigo-600 transition-colors flex-shrink-0 ml-3 p-1 rounded-full hover:bg-white">
+                        ${renderIcon('M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4')}
+                    </button>
+                </div>
+            `;
+        }
+
+
+        // --- Función de Alerta Personalizada (Reemplazo de alert()) ---
+        function alertUser(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'fixed top-4 right-4 p-4 rounded-lg shadow-xl text-white z-50 transition-transform duration-500 transform translate-x-0';
+            
+            if (type === 'success') {
+                alertDiv.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                alertDiv.classList.add('bg-red-500');
+            } else {
+                alertDiv.classList.add('bg-blue-500');
+            }
+            
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
+            
+            // Auto-ocultar y limpiar
+            setTimeout(() => {
+                alertDiv.classList.add('translate-x-full');
+                alertDiv.classList.remove('translate-x-0');
+            }, 3000);
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3500);
+        }
+
+        // Inicializar la página en la vista 'home'
+        window.onload = () => {
+            navigate('home'); 
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+{% load static %}
+
+<header class="site-header">
+    <div class="header-container">
+        
+        <!-- 1. Logo (Siempre visible) -->
+        <div class="logo-area">
+            <a href="{% url 'home' %}">
+                <img src="{% static 'images/logo.png' %}" alt="Logo Estudiante Integral">
+            </a>
+        </div>
+
+        <!-- 2. Navegación (Cambia según el estado del usuario) -->
+        <nav class="main-nav">
+            
+            {% if user.is_authenticated %}
+                
+                <!-- --- INICIO DE LÓGICA DE ROLES --- -->
+
+                {% if user.tipo_usuario.nombre == 'Estudiante' %}
+                    <!-- 
+                    ESTADO: CONECTADO (Estudiante) 
+                    -->
+                    <a class="nav-link" href="{% url 'estudiante' %}">Inicio</a>
+                    <span class="separator">|</span>
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i>
+                            {{ user.nombre }} {{ user.apellido }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="POST" action="{% url 'logout' %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+
+                {% elif user.tipo_usuario.nombre == 'Profesor' %}
+                    <!-- 
+                    ESTADO: CONECTADO (Docente) 
+                    -->
+                    <a class="nav-link" href="{% url 'docente' %}">Inicio</a>
+                    <a class="nav-link" href="{% url 'mis_clases_agendadas' %}">Mi Agenda</a>
+                    <span class="separator">|</span>
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-fill"></i>
+                            {{ user.nombre }} {{ user.apellido }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li>
+                                <form method="POST" action="{% url 'logout' %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+
+                {% else %}
+                    <!-- 
+                    ESTADO: CONECTADO (Otro: Admin, etc.)
+                    -->
+                    <a class="nav-link" href="#">Admin</a>
+                    <span class="separator">|</span>
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-shield"></i>
+                            {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li>
+                                <form method="POST" action="{% url 'logout' %}" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                <!-- --- FIN DE LÓGICA DE ROLES --- -->
+
+            {% else %}
+                <!-- 
+                  ESTADO: DESCONECTADO (Público)
+                -->
+                <a class="nav-link" href="{% url 'home' %}">Inicio</a>
+                <a class="nav-link" href="{% url 'nosotros' %}">Sobre Nosotros</a>
+                
+                <span class="separator">|</span>
+
+                <a class="nav-link" href="{% url 'login' %}">Iniciar sesión</a>
+                <a class="btn-elegante btn-sm" href="{% url 'registro' %}">Registrarse</a>
+            
+            {% endif %}
+
+        </nav>
+    </div>
+</header>

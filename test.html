@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}no-sidebar{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid mt-4">
+    <div class="topbar">
+        <div class="page-title">
+            <h1><i class="bi bi-graph-up"></i> Reportes Generales</h1>
+        </div>
+        <a href="{% url 'panel_principal' %}" class="btn btn-primary">
+            <i class="bi bi-arrow-left-circle"></i> Volver
+        </a>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-principal text-white">
+            <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtrar Reportes</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="fecha_inicio" class="form-label">Desde</label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" class="form-control">
+                </div>
+                <div class="col-md-4">
+                    <label for="fecha_fin" class="form-label">Hasta</label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" class="form-control">
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-50"><i class="bi bi-filter"></i> Filtrar</button>
+                    <button type="button" id="export-pdf" class="btn btn-danger w-50"><i class="bi bi-file-earmark-pdf"></i> Exportar PDF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-principal text-white">
+                    <i class="bi bi-bar-chart"></i> Asistencias Mensuales
+                </div>
+                <div class="card-body">
+                    <canvas id="graficoAsistencia" height="160"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-principal text-white">
+                    <i class="bi bi-cash-stack"></i> Pagos por Mes
+                </div>
+                <div class="card-body">
+                    <canvas id="graficoPagos" height="160"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DETALLADA -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-principal text-white">
+            <i class="bi bi-table"></i> Detalle de Registros
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Miembro</th>
+                            <th>Fecha</th>
+                            <th>Asistencia</th>
+                            <th>Pago</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registro in registros %}
+                        <tr>
+                            <td>{{ registro.miembro }}</td>
+                            <td>{{ registro.fecha|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if registro.asistencia %}
+                                    <span class="badge bg-success">Presente</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Ausente</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if registro.pago_realizado %}
+                                    <span class="badge bg-success">Pagado</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Pendiente</span>
+                                {% endif %}
+                            </td>
+                            <td>${{ registro.monto }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted">No hay registros en este rango</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CHART.JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const graficoAsistencia = new Chart(document.getElementById('graficoAsistencia'), {
+    type: 'bar',
+    data: {
+        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago'],
+        datasets: [{
+            label: 'Asistencias',
+            data: [45, 52, 48, 60, 55, 63, 58, 62],
+            backgroundColor: '#0d9488'
+        }]
+    }
+});
+
+const graficoPagos = new Chart(document.getElementById('graficoPagos'), {
+    type: 'line',
+    data: {
+        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago'],
+        datasets: [{
+            label: 'Pagos ($)',
+            data: [40000, 42000, 39000, 45000, 47000, 49000, 52000, 55000],
+            borderColor: '#0d9488',
+            backgroundColor: 'rgba(13, 148, 136, 0.1)',
+            tension: 0.3
+        }]
+    }
+});
+</script>
+
+<!-- EXPORTAR PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+document.getElementById("export-pdf").addEventListener("click", () => {
+    import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').then(() => {
+        html2canvas(document.body).then(canvas => {
+            const pdf = new jspdf.jsPDF();
+            const imgData = canvas.toDataURL("image/png");
+            const imgWidth = 190;
+            const pageHeight = 295;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 10;
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+            pdf.save("reporte_survolley.pdf");
+        });
+    });
+});
+</script>
+{% endblock %}

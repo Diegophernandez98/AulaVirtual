@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro | Estudiante Integral{% endblock %}
+
+{% block content %} 
+<div class="login-page-wrapper">
+    <div class="login-card">
+        <h2 class="texto-centrado">Crear una Cuenta</h2>
+        <p class="text-center text-muted mb-4">Únete a nuestra comunidad educativa</p>
+
+        <!-- Mensajes de error específicos del formulario -->
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <strong>Por favor corrige los siguientes errores:</strong>
+                <ul class="mb-0 mt-2 pl-4">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Renderizado manual para mejor control o uso de as_p con estilo -->
+            <!-- Iteramos sobre los campos para darles estilo individualmente si es necesario -->
+            {% for field in form %}
+            <div class="mb-3">
+                <label class="form-label fw-bold text-secondary">{{ field.label }}</label>
+                <div class="input-group">
+                    {{ field }}
+                </div>
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="texto-centrado" style="margin-top: 30px;">
+                <button class="btn-elegante w-100" type="submit">Registrarse</button>
+            </div>
+        </form>
+
+        <div class="login-card-footer">
+            <p>¿Ya tienes una cuenta? <a href="{% url 'login' %}">Inicia sesión aquí</a></p>
+        </div>
+    </div> 
+</div> 
+{% endblock %}

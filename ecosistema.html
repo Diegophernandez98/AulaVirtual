@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ecosistema Componentes — Prototipo Plataforma</title>
+  <style>
+    /* Reset ligero */
+    * {box-sizing: border-box; margin: 0; padding: 0; font-family: Inter, Roboto, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial;}
+    body {background: #0f1724; color: #e6eef8; line-height:1.4;}
+    a {color: inherit; text-decoration: none;}
+    header {background: linear-gradient(90deg,#0b1220 0%, #0f2438 100%); padding: 20px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; border-bottom:1px solid rgba(255,255,255,0.03);}
+    .brand {display:flex; align-items:center; gap:12px;}
+    .logo {width:46px; height:46px; border-radius:8px; background:linear-gradient(135deg,#20c997,#057d5f); display:flex; align-items:center; justify-content:center; font-weight:700; color:#04251a;}
+    nav {display:flex; gap:12px; align-items:center;}
+    nav a {padding:8px 12px; border-radius:8px; background:transparent; color: #cfe8ff; font-size:0.95rem;}
+    nav a.cta {background:#144b82; color:#e7f7ff;}
+    main {padding:28px; max-width:1200px; margin:18px auto; display:grid; gap:20px;}
+    .hero {display:grid; grid-template-columns:1fr 360px; gap:24px; align-items:start;}
+    .card {background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); padding:18px; border-radius:12px;}
+    h1 {font-size:1.5rem; margin-bottom:6px;}
+    p.lead {color:#bcd9ff; margin-bottom:10px;}
+    .kpis {display:flex; gap:12px; margin-top:12px;}
+    .kpi {flex:1; padding:12px; background:rgba(255,255,255,0.015); border-radius:10px; text-align:center;}
+    .kpi .num {font-size:1.35rem; font-weight:700; color:#e8fbff;}
+    .grid-3 {display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+    /* Dashboard visual placeholders */
+    .chart {height:160px; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#9fc9ff; background: linear-gradient(180deg, rgba(8,40,64,0.3), rgba(8,40,64,0.15)); border:1px dashed rgba(160,200,255,0.06);}
+    table {width:100%; border-collapse:collapse; font-size:0.92rem;}
+    th, td {padding:10px 8px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.03);}
+    th {color:#98c8ff; font-weight:600;}
+    .muted {color:#9fb6d7; font-size:0.9rem;}
+    footer {padding:18px; text-align:center; color:#b6cfe6; font-size:0.9rem;}
+    /* Responsive */
+    @media (max-width:1000px){ .hero{grid-template-columns:1fr;} .grid-3{grid-template-columns:1fr;} nav{display:none;} }
+    /* Small utilities */
+    .pill {display:inline-block; padding:6px 10px; background:rgba(255,255,255,0.03); border-radius:999px; font-size:0.85rem;}
+    .row {display:flex; gap:12px; align-items:center;}
+    .left {flex:1;}
+    .section-title {display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+    .tag {font-size:0.8rem; color:#c5e8ff; background:rgba(20,80,120,0.12); padding:6px 8px; border-radius:8px;}
+    /* mock "inspection" images */
+    .inspection {display:flex; gap:12px; align-items:center;}
+    .pcb {width:86px; height:62px; border-radius:8px; background:linear-gradient(135deg,#081a1f,#06323b); display:flex; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,0.04); color:#8fe2da;}
+    .status-good {color:#9ff7c7;} .status-bad {color:#ffab9a;}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">EC</div>
+      <div>
+        <div style="font-weight:700">Ecosistema Componentes</div>
+        <div class="muted" style="font-size:0.85rem">Prototipo de Plataforma Operativa</div>
+      </div>
+    </div>
+
+    <nav aria-label="principal">
+      <a href="#">Dashboard</a>
+      <a href="#">Producción</a>
+      <a href="#">Inventario</a>
+      <a href="#">CRM</a>
+      <a class="cta" href="#">Portal Proveedores</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="card">
+        <div class="section-title">
+          <div>
+            <h1>Panel Operativo — Visión General</h1>
+            <div class="muted">Datos en tiempo real | Inspección por IA | Gestión de proveedores</div>
+          </div>
+          <div class="pill">Usuario: Diego Hernández</div>
+        </div>
+
+        <p class="lead">Monitorea la producción, calidad y la cadena de suministro desde un único lugar. Este prototipo resume las funciones críticas propuestas en el informe de transformación digital.</p>
+
+        <div class="kpis" style="margin-bottom:12px;">
+          <div class="kpi">
+            <div class="muted">Yield (último lote)</div>
+            <div class="num">95.4%</div>
+            <div class="muted">Desperdicio estimado 4.6%</div>
+          </div>
+          <div class="kpi">
+            <div class="muted">Stock crítico</div>
+            <div class="num">12 items</div>
+            <div class="muted">2 con bajo nivel</div>
+          </div>
+          <div class="kpi">
+            <div class="muted">Alertas IA</div>
+            <div class="num">3</div>
+            <div class="muted">2 pendientes revisión</div>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="section-title"><strong>Dashboard de Calidad</strong><span class="tag">Visión artificial</span></div>
+            <div class="chart">Gráfico de control (placeholder)</div>
+            <div style="margin-top:8px;" class="muted">Tasa de defectos por máquina — insights de la IA</div>
+          </div>
+
+          <div class="card">
+            <div class="section-title"><strong>Inventario (resumen)</strong><span class="tag">ERP</span></div>
+            <table aria-hidden="true">
+              <thead><tr><th>Material</th><th>Stock</th><th>Lead time</th></tr></thead>
+              <tbody>
+                <tr><td>Placas FR4</td><td>120</td><td>5 días</td></tr>
+                <tr><td>Componentes SMD</td><td>22 <span class="muted">bajo</span></td><td>10 días</td></tr>
+                <tr><td>Tornillería</td><td>540</td><td>2 días</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="section-title"><strong>CRM — Últimos pedidos</strong><span class="tag">Ventas</span></div>
+            <div style="max-height:126px; overflow:auto;">
+              <table aria-hidden="true">
+                <thead><tr><th>Cliente</th><th>Pedido</th><th>Estado</th></tr></thead>
+                <tbody>
+                  <tr><td>GreenSolar</td><td>PCBs - Lote A</td><td class="status-good">En fabricación</td></tr>
+                  <tr><td>Indu4.0 Ltda</td><td>SensorX</td><td class="status-bad">Retrasado</td></tr>
+                  <tr><td>ElectroChile</td><td>Placas B</td><td class="status-good">Listo</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right column: quick actions + inspection -->
+      <aside style="position:relative;">
+        <div class="card">
+          <div class="section-title"><strong>Inspección por IA (Simulada)</strong><span class="tag">Visión artificial</span></div>
+          <div class="inspection" style="margin-bottom:10px;">
+            <div class="pcb">PCB A1</div>
+            <div>
+              <div><strong>Resultado:</strong> <span class="status-good">OK</span></div>
+              <div class="muted">Probabilidad defecto: 3%</div>
+              <div class="muted" style="margin-top:6px;">Cámara: Cam-L1 · Alta resolución</div>
+            </div>
+          </div>
+
+          <div class="inspection" style="margin-bottom:10px;">
+            <div class="pcb">PCB B3</div>
+            <div>
+              <div><strong>Resultado:</strong> <span class="status-bad">DEFECTO</span></div>
+              <div class="muted">Probabilidad defecto: 82%</div>
+              <div class="muted" style="margin-top:6px;">Acción sugerida: Revisión manual</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;">
+            <button style="width:100%; padding:10px; border-radius:10px; border:0; background:#0f5a88; color:white; font-weight:600;">Abrir detalle de lote</button>
+          </div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="card">
+          <div class="section-title"><strong>Notificaciones</strong><span class="pill">3 nuevas</span></div>
+          <ul style="margin-top:8px; list-style:none;">
+            <li class="muted" style="margin-bottom:8px;">[Inventario] SMD - nivel <strong>crítico</strong>.</li>
+            <li class="muted" style="margin-bottom:8px;">[Calidad] Alta variación en máquina M2.</li>
+            <li class="muted" style="margin-bottom:8px;">[Proveedor] Confirmación despacho retrasada.</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+
+    <!-- SECOND ROW: Modules -->
+    <section class="card">
+      <div class="section-title"><strong>Modulos y flujos</strong><span class="tag">Arquitectura propuesta</span></div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px;">
+        <div class="card" style="padding:12px;">
+          <h3 style="margin-bottom:8px;">Análisis de datos (BI)</h3>
+          <div class="muted" style="margin-bottom:8px;">Dashboards para gerencia y producción. Ejemplos:</div>
+          <ul style="margin-left:18px; color:#cfe8ff;">
+            <li>Yield por máquina / lote.</li>
+            <li>Forecast de demanda y compras JIT.</li>
+            <li>Mantenimiento predictivo (vibración, temperatura).</li>
+          </ul>
+          <div class="chart" style="margin-top:10px;">Widget de BI (placeholder)</div>
+        </div>
+
+        <div class="card" style="padding:12px;">
+          <h3 style="margin-bottom:8px;">ERP + Portal Proveedores</h3>
+          <div class="muted" style="margin-bottom:8px;">Gestión de órdenes, facturas y trazabilidad con proveedores.</div>
+          <ol style="margin-left:18px; color:#cfe8ff;">
+            <li>Pedido automático al bajar stock crítico.</li>
+            <li>Aprobación digital y seguimiento de lead times.</li>
+            <li>Histórico de precios y comparativa de proveedores.</li>
+          </ol>
+          <div style="margin-top:10px;" class="chart">Portal Proveedor (placeholder)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THIRD ROW: Procedures & People -->
+    <section class="card">
+      <div class="section-title">
+        <strong>Integración Organizacional & Reskilling</strong>
+        <div class="tag">Gestión del cambio</div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-top:10px;">
+        <div>
+          <p class="muted">Estrategias para mitigar resistencias y reconversión de roles:</p>
+          <ul style="color:#cfe8ff; margin-left:18px;">
+            <li>Capacitación progresiva para operarios de calidad (calibración de visión artificial).</li>
+            <li>Super-usuarios en cada área para mentoría.</li>
+            <li>Política interna: reasignación de tareas repetitivas a tareas de mayor valor.</li>
+          </ul>
+          <h4 style="margin-top:10px;">Flujo de aprobación digital</h4>
+          <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px;">
+            <div style="display:flex; gap:8px; align-items:center;"><strong>1.</strong><span class="muted">IA detecta anomalía → genera ticket.</span></div>
+            <div style="display:flex; gap:8px; align-items:center; margin-top:6px;"><strong>2.</strong><span class="muted">Técnico valida → reasigna o descarta.</span></div>
+            <div style="display:flex; gap:8px; align-items:center; margin-top:6px;"><strong>3.</strong><span class="muted">Si crítico → orden de trabajo y pedido de repuestos automático.</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin-bottom:6px;">Indicadores de éxito</h4>
+          <ul style="color:#cfe8ff; margin-left:18px;">
+            <li>Reducción desperdicio: -50% (meta)</li>
+            <li>Costos de almacenamiento: -15% a -20%</li>
+            <li>Tasa adopción usuarios: 80% en 6 meses</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div style="max-width:1000px; margin:0 auto;">
+        <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
+          <div class="muted">Prototipo estático basado en: Informe "Transformación Digital Operativa" — Ecosistema Componentes. :contentReference[oaicite:1]{index=1}</div>
+          <div style="font-size:0.9rem;">Fecha del prototipo: <strong>07/10/2025</strong></div>
+        </div>
+      </div>
+    </footer>
+  </main>
+</body>
+</html>

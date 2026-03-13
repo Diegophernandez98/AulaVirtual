@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel de Estudiante{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <!-- 1. SALUDO DE BIENVENIDA -->
+    <div class="dashboard-header text-center mb-5">
+        <h1 class="display-5 fw-bold text-dark">Bienvenido, {{ user.nombre }}</h1>
+        <p class="lead text-muted">¿Qué te gustaría hacer hoy?</p>
+        
+        <!-- 2. BOTONES DE ACCIÓN RÁPIDA -->
+        <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+            <a href="{% url 'mis_clases_agendadas' %}" class="btn btn-primary btn-lg d-flex align-items-center gap-2 px-4 shadow-sm">
+                <i class="bi bi-calendar-check"></i>
+                Clases Agendadas
+            </a>
+            
+            <a href="{% url 'portalPagos' %}" class="btn btn-info text-white btn-lg d-flex align-items-center gap-2 px-4 shadow-sm">
+                <i class="bi bi-credit-card"></i>
+                Portal de Pagos
+            </a>
+        </div>
+    </div>
+
+    <hr class="my-5">
+
+    <!-- 3. SECCIÓN DE BÚSQUEDA -->
+    <div class="professor-search-section">
+        <div class="text-center mb-4">
+            <h2 class="h3 text-dark fw-bold">Encontrar Profesor</h2>
+            <p class="text-muted">Busca en nuestra base de datos de docentes</p>
+        </div>
+
+        <!-- Barra de Búsqueda -->
+        <div class="card shadow-sm border-0 mb-5">
+            <div class="card-body p-4 bg-light rounded">
+                <form class="row g-3 justify-content-center align-items-center" method="GET" action="">
+                    
+                    <div class="col-md-6">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white border-end-0 text-muted">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" name="q" placeholder="Ej: Matemáticas, Juan Pérez..." value="{{ request.GET.q }}">
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <select class="form-select form-select-lg" name="filtro">
+                            <option value="nombre" {% if request.GET.filtro == 'nombre' %}selected{% endif %}>Nombre</option>
+                            <option value="asignatura" {% if request.GET.filtro == 'asignatura' %}selected{% endif %}>Asignatura</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-dark btn-lg w-100">Buscar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 4. LISTADO DE PROFESORES -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            
+            <!-- CAMBIO: Usamos 'profesores' en lugar de 'profesores_populares' -->
+            {% for profesor in profesores %}
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0 hover-shadow transition-all">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3">
+                            {% if profesor.foto_perfil %}
+                                <img src="{{ profesor.foto_perfil.url }}" alt="{{ profesor.nombre }}" class="rounded-circle border border-3 border-light shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto text-white fw-bold fs-3 shadow-sm" style="width: 100px; height: 100px;">
+                                    {{ profesor.nombre|first }}{{ profesor.apellido|first }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <h5 class="card-title fw-bold text-dark mb-1">{{ profesor.nombre }} {{ profesor.apellido }}</h5>
+                        <p class="text-muted small mb-3">Docente</p>
+
+                        <div class="mb-4">
+                            {% for asignatura in profesor.asignaturas.all %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary mb-1">{{ asignatura.nombre }}</span>
+                            {% empty %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary">Sin asignaturas</span>
+                            {% endfor %}
+                        </div>
+                        <a href="{% url 'perfil_profesor' profesor.id %}" class="btn btn-outline-primary w-100 rounded-pill">
+                            Ver Perfil
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="text-muted">
+                    <i class="bi bi-emoji-frown display-4 mb-3 d-block"></i>
+                    <p class="h5">No se encontraron profesores.</p>
+                    <p>Intenta ajustar tus criterios de búsqueda.</p>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div> 
+    </div> 
+</div> 
+
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}

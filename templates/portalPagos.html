@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Portal de Pagos{% endblock %}
+
+{% block content %}
+
+<!-- 
+  Usamos el 'content-card' que ya hemos definido en CSS.
+  Lo hacemos un poco más ancho (900px) para que quepa la lista.
+-->
+<div class="content-card" style="max-width: 900px; margin: 30px auto;">
+
+    <!-- Título de la Página -->
+    <div class="dashboard-header texto-centrado">
+        <h2 style="color: #2c3e50;">Mi Portal de Pagos</h2>
+        <p>Revisa tus pagos pendientes y tu historial de transacciones.</p>
+    </div>
+
+    <hr class="footer-divider" style="margin: 30px 0;">
+
+    <!-- 
+      Pestañas de Bootstrap para organizar los pagos.
+    -->
+    <ul class="nav nav-tabs" id="pagosTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pendientes-tab" data-bs-toggle="tab" data-bs-target="#pendientes" type="button" role="tab">
+                <i class="bi bi-hourglass-split"></i> Pagos Pendientes
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab">
+                <i class="bi bi-receipt-cutoff"></i> Historial de Pagos
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las Pestañas -->
+    <div class="tab-content" id="pagosTabsContent" style="padding-top: 20px;">
+        
+        <!-- Pestaña 1: Pagos Pendientes -->
+        <div class="tab-pane fade show active" id="pendientes" role="tabpanel">
+            <div class="clase-list">
+                
+                <!-- BUCLE DE DJANGO (Pendientes) -->
+                <!-- 
+                  Tu vista debe pasar una lista llamada 'pagos_pendientes'
+                  (Ej. ComprobantePago.objects.filter(estudiante=request.user, estado='PEND'))
+                -->
+                {% for pago in pagos_pendientes %}
+                <div class="clase-item">
+                    <!-- Información de la Clase -->
+                    <div class="clase-info">
+                        <h4>{{ pago.clase_agendada.asignatura.nombre }}</h4>
+                        <p><i class="bi bi-person-fill"></i> Prof. {{ pago.clase_agendada.docente.nombre }} {{ pago.clase_agendada.docente.apellido }}</p>
+                        <p><i class="bi bi-calendar-event"></i> Fecha de clase: {{ pago.clase_agendada.fecha|date:"d M, Y - H:i" }} hs</p>
+                    </div>
+                    <!-- Info del Pago -->
+                    <div class="clase-pago-info">
+                        <h4>${{ pago.total }}</h4>
+                        <span class="badge-pago pago-{{ pago.estado|lower }}">
+                            {{ pago.get_estado_display }}
+                        </span>
+                    </div>
+                    <!-- Acción -->
+                    <div class="clase-accion">
+                        <!-- Este botón debería llevar a tu pasarela de pago -->
+                        <a href="#" class="btn btn-success btn-sm">
+                            <i class="bi bi-credit-card"></i> Pagar Ahora
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Mensaje si no hay pagos pendientes -->
+                {% empty %}
+                    <p class="texto-centrado" style="padding: 20px;">¡Excelente! No tienes ningún pago pendiente.</p>
+                {% endfor %}
+
+            </div>
+        </div>
+        
+        <!-- Pestaña 2: Historial de Pagos -->
+        <div class="tab-pane fade" id="historial" role="tabpanel">
+            <div class="clase-list">
+
+                <!-- BUCLE DE DJANGO (Historial) -->
+                <!-- 
+                  Tu vista debe pasar una lista llamada 'pagos_historial'
+                  (Ej. ComprobantePago.objects.filter(estudiante=request.user).exclude(estado='PEND'))
+                -->
+                {% for pago in pagos_historial %}
+                <div class="clase-item">
+                    <!-- Información de la Clase -->
+                    <div class="clase-info">
+                        <h4>{{ pago.clase_agendada.asignatura.nombre }}</h4>
+                        <p><i class="bi bi-person-fill"></i> Prof. {{ pago.clase_agendada.docente.nombre }} {{ pago.clase_agendada.docente.apellido }}</p>
+                        <p><i class="bi bi-calendar-check"></i> Pagado el: {{ pago.fecha_pago|date:"d M, Y" }}</p>
+                    </div>
+                    <!-- Info del Pago -->
+                    <div class="clase-pago-info">
+                        <h4>${{ pago.total }}</h4>
+                        <span class="badge-pago pago-{{ pago.estado|lower }}">
+                            {{ pago.get_estado_display }}
+                        </span>
+                    </div>
+                    <!-- Acción -->
+                    <div class="clase-accion">
+                        <a href="#" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-download"></i> Ver Recibo
+                        </a>
+                    </div>
+                </div>
+                
+
+                <!-- Mensaje si no hay historial -->
+                {% empty %}
+                    <p class="texto-centrado" style="padding: 20px;">Aún no has realizado ningún pago.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div> <!-- Fin de .tab-content -->
+</div> <!-- Fin de .content-card -->
+
+{% endblock %}

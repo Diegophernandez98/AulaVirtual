@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Clases Agendadas | Estudiante Integral{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark">Mis Clases Agendadas</h2>
+            <p class="text-muted">Gestiona tus próximas sesiones y revisa tu historial.</p>
+        </div>
+        
+        <!-- Botón Volver al Panel -->
+        {% if es_docente %}
+            <a href="{% url 'docente' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver al Panel
+            </a>
+        {% else %}
+            <a href="{% url 'estudiante' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver al Panel
+            </a>
+        {% endif %}
+    </div>
+
+
+
+
+
+    <!-- PESTAÑAS (TABS) -->    
+    <ul class="nav nav-pills mb-4 gap-2" id="clasesTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold px-4 py-2 shadow-sm" id="proximas-tab" data-bs-toggle="pill" data-bs-target="#proximas" type="button" role="tab">
+                <i class="bi bi-calendar-check me-2"></i> Próximas Clases
+            </button>
+        </li>
+        
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 py-2 shadow-sm" id="pasadas-tab" data-bs-toggle="pill" data-bs-target="#pasadas" type="button" role="tab">
+                <i class="bi bi-clock-history me-2"></i> Historial
+            </button>
+        </li>
+    </ul>
+
+
+
+
+    <!-- CONTENIDO DE PESTAÑAS -->
+    <div class="tab-content" id="clasesTabsContent">
+        
+        <!-- TAB 1: PRÓXIMAS CLASES -->
+        <div class="tab-pane fade show active" id="proximas" role="tabpanel">
+            {% if clases_proximas %}
+                <div class="table-responsive bg-white rounded shadow-sm border">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Fecha y Hora</th>
+                                <th>Asignatura</th>
+                                <th>{% if es_docente %}Estudiante{% else %}Profesor{% endif %}</th>
+                                <th>Estado</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for clase in clases_proximas %}
+                            <tr>
+                                <!-- Fecha -->
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">{{ clase.fecha|date:"l d M, Y" }}</div>
+                                    <div class="text-muted small">{{ clase.fecha|time:"H:i" }}</div>
+                                </td>
+                                
+                                <!-- Asignatura -->
+                                <td>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">
+                                        {{ clase.asignatura.nombre }}
+                                    </span>
+                                </td>
+
+                                <!-- Participante -->
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if es_docente %}
+                                            <!-- Si soy profe, muestro al estudiante -->
+                                            <div class="avatar-circle bg-secondary text-white me-2 small">
+                                                {{ clase.estudiante.nombre|first }}
+                                            </div>
+                                            <div>{{ clase.estudiante.nombre }} {{ clase.estudiante.apellido }}</div>
+                                        {% else %}
+                                            <!-- Si soy alumno, muestro al profe -->
+                                            <div class="avatar-circle bg-info text-white me-2 small">
+                                                {{ clase.docente.nombre|first }}
+                                            </div>
+                                            <div>Prof. {{ clase.docente.nombre }} {{ clase.docente.apellido }}</div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <!-- Estado -->
+                                <td>
+                                    <span class="badge bg-success">Confirmada</span>
+                                </td>
+
+                                <!-- ACCIONES (BOTONES) -->
+                                <td class="text-end pe-4">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        
+                                        <!-- BOTÓN INGRESAR A SALA (NUEVO) -->
+                                        <!-- Se pasa clase.id para que la URL sea única -->
+                                        <a href="{% url 'sala' clase.id %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
+                                            <i class="bi bi-camera-video-fill"></i> 
+                                            Ingresar a Sala
+                                        </a>
+
+                                        <!-- BOTÓN CANCELAR -->
+                                        <form action="{% url 'cancelar_clase' clase.id %}" method="POST" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Estás seguro de cancelar esta clase?');" title="Cancelar Clase">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </form>
+
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 bg-light rounded border border-dashed">
+                    <i class="bi bi-calendar-x display-4 text-muted mb-3"></i>
+                    <h5 class="text-muted">No tienes clases próximas agendadas.</h5>
+                    {% if not es_docente %}
+                        <a href="{% url 'estudiante' %}" class="btn btn-primary mt-3">Buscar Profesor</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- TAB 2: HISTORIAL (PASADAS) -->
+        <div class="tab-pane fade" id="pasadas" role="tabpanel">    
+            {% if clases_pasadas %}
+                <div class="table-responsive bg-white rounded shadow-sm border">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Fecha</th>
+                                <th>Asignatura</th>
+                                <th>{% if es_docente %}Estudiante{% else %}Profesor{% endif %}</th>
+                                <th>Estado</th>
+                                <th class="text-end pe-4">Revisar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for clase in clases_pasadas %}
+                            <tr class="opacity-75">
+                                <td class="ps-4">{{ clase.fecha|date:"d/m/Y H:i" }}</td>
+                                <td>{{ clase.asignatura.nombre }}</td>
+                                <td>
+                                    {% if es_docente %}
+                                        {{ clase.estudiante.nombre }}
+                                    {% else %}
+                                        {{ clase.docente.nombre }}
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-secondary">Finalizada</span></td>
+                                
+                                <td class="text-end pe-4">
+                                    <a href="{% url 'sala' clase.id %}" class="btn btn-outline-primary btn-sm rounded-pill" title="Ver pizarra">
+                                        <i class="bi bi-eye"></i> Ver Pizarra
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5 text-muted">
+                    <p>No hay clases en el historial.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+    .border-dashed {
+        border-style: dashed !important;
+    }
+
+
+    
+    /* Estilos para que los botones inactivos no desaparezcan */
+    .nav-pills .nav-link {
+        background-color: #f8f9fa; /* Gris claro de fondo */
+        color: #6c757d;            /* Texto gris oscuro */
+        border: 1px solid #dee2e6; /* Borde sutil */
+        transition: all 0.3s ease;
+    }
+
+    /* Efecto al pasar el mouse por encima del inactivo */
+    .nav-pills .nav-link:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px); /* Pequeña animación de elevación */
+    }
+
+    /* Estilo del botón ACTIVO (Seleccionado) */
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd; /* Azul primario */
+        color: white;              /* Texto blanco */
+        border-color: #0d6efd;
+    }
+</style>
+{% endblock %}

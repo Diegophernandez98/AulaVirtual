@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Portal de Proveedores — Ecosistema Componentes</title>
+  <style>
+    * {box-sizing:border-box; margin:0; padding:0; font-family: Inter, Roboto, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial;}
+    body {background:#0f1724; color:#e6eef8; line-height:1.4;}
+    header {background:linear-gradient(90deg,#0b1220 0%,#0f2438 100%); padding:20px 28px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.03);}
+    .brand {display:flex; align-items:center; gap:12px;}
+    .logo {width:46px; height:46px; border-radius:8px; background:linear-gradient(135deg,#20c997,#057d5f); display:flex; align-items:center; justify-content:center; font-weight:700; color:#04251a;}
+    nav {display:flex; gap:12px;}
+    nav a {color:#cfe8ff; text-decoration:none; padding:8px 12px; border-radius:8px;}
+    nav a.active, nav a:hover {background:#143a6b;}
+    main {padding:28px; max-width:1200px; margin:0 auto; display:grid; gap:20px;}
+    .card {background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); border-radius:12px; padding:18px;}
+    .muted {color:#9fb6d7; font-size:0.9rem;}
+    h1,h2,h3 {margin-bottom:8px;}
+    .grid-2 {display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+    table {width:100%; border-collapse:collapse; margin-top:10px;}
+    th,td {padding:10px 8px; text-align:left; border-bottom:1px solid rgba(255,255,255,0.03);}
+    th {color:#98c8ff;}
+    .status-ok {color:#9ff7c7;}
+    .status-pendiente {color:#f7f59a;}
+    .status-error {color:#ffab9a;}
+    .pill {display:inline-block; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,0.03); font-size:0.8rem; color:#c5e8ff;}
+    button {background:#0f5a88; border:none; color:#fff; font-weight:600; padding:10px 14px; border-radius:10px; cursor:pointer;}
+    button:hover {background:#187bb0;}
+    input,select,textarea {width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#e6eef8; padding:8px; margin-top:4px;}
+    label {font-size:0.9rem; color:#bcd9ff;}
+    footer {text-align:center; padding:20px; color:#b6cfe6; font-size:0.9rem;}
+    @media(max-width:900px){.grid-2{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">EC</div>
+      <div>
+        <div style="font-weight:700;">Ecosistema Componentes</div>
+        <div class="muted" style="font-size:0.85rem;">Portal de Proveedores</div>
+      </div>
+    </div>
+    <nav>
+      <a href="#" class="active">Inicio</a>
+      <a href="#">Órdenes</a>
+      <a href="#">Facturas</a>
+      <a href="#">Mensajes</a>
+      <a href="#">Perfil</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Dashboard general -->
+    <section class="card">
+      <h1>Bienvenido, <span style="color:#9ff7c7;">Proveedor TechParts Ltda</span></h1>
+      <p class="muted">Último acceso: 05/10/2025 — Visualiza tus pedidos, facturas y mensajes desde un único panel.</p>
+      <div style="display:flex; gap:12px; margin-top:14px;">
+        <div class="card" style="flex:1;">
+          <h3>Órdenes activas</h3>
+          <div style="font-size:1.8rem; font-weight:700; color:#e8fbff;">7</div>
+          <p class="muted">2 con despacho pendiente</p>
+        </div>
+        <div class="card" style="flex:1;">
+          <h3>Facturas pendientes</h3>
+          <div style="font-size:1.8rem; font-weight:700; color:#e8fbff;">3</div>
+          <p class="muted">Por validar finanzas</p>
+        </div>
+        <div class="card" style="flex:1;">
+          <h3>Mensajes nuevos</h3>
+          <div style="font-size:1.8rem; font-weight:700; color:#e8fbff;">1</div>
+          <p class="muted">Desde logística</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabla de órdenes -->
+    <section class="card">
+      <h2>Órdenes de compra</h2>
+      <table>
+        <thead>
+          <tr>
+            <th># Orden</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Estado</th>
+            <th>Entrega estimada</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>PO-1043</td>
+            <td>Resistencias 10kΩ</td>
+            <td>12.000</td>
+            <td class="status-ok">En tránsito</td>
+            <td>08/10/2025</td>
+          </tr>
+          <tr>
+            <td>PO-1044</td>
+            <td>Capacitores cerámicos</td>
+            <td>8.500</td>
+            <td class="status-pendiente">Pendiente aprobación</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>PO-1045</td>
+            <td>Chips MCU-AT32</td>
+            <td>2.000</td>
+            <td class="status-error">Retrasado</td>
+            <td>15/10/2025</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Subida de documentos -->
+    <section class="card">
+      <h2>Subida de documentos</h2>
+      <div class="grid-2">
+        <div>
+          <label for="orden">Selecciona orden:</label>
+          <select id="orden">
+            <option>PO-1043</option>
+            <option>PO-1044</option>
+            <option>PO-1045</option>
+          </select>
+        </div>
+        <div>
+          <label for="tipo">Tipo de documento:</label>
+          <select id="tipo">
+            <option>Factura</option>
+            <option>Guía de despacho</option>
+            <option>Certificado de calidad</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <label for="archivo">Seleccionar archivo:</label>
+        <input type="file" id="archivo" />
+      </div>
+      <div style="margin-top:14px;">
+        <button>Subir documento (simulado)</button>
+      </div>
+    </section>
+
+    <!-- Mensajería -->
+    <section class="card">
+      <h2>Mensajes recientes</h2>
+      <div class="card" style="margin-top:10px; background:rgba(255,255,255,0.03);">
+        <div style="display:flex; justify-content:space-between;">
+          <strong>Logística EC</strong>
+          <span class="muted">05/10/2025 — 10:34</span>
+        </div>
+        <p style="margin-top:4px;">Se confirma recepción de documentos del lote PO-1042. Gracias por su colaboración.</p>
+      </div>
+      <div style="margin-top:14px;">
+        <label for="mensaje">Enviar nuevo mensaje:</label>
+        <textarea id="mensaje" rows="3" placeholder="Escribe tu mensaje..."></textarea>
+        <div style="margin-top:10px;">
+          <button>Enviar (simulado)</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Prototipo del Portal de Proveedores — Ecosistema Componentes © 2025<br>
+    <span class="muted">Versión demostrativa sin conexión a base de datos</span>
+  </footer>
+</body>
+</html>

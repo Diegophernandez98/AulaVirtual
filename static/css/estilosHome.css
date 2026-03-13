@@ -1,0 +1,351 @@
+/* Alondra Sanhueza Muñoz (DDA302/D-DDW-N1-P1-C2/D Osorno DDW)*/
+/*margenes en 0, fuentes, fondo de la página más su url de la imagen, porcentaje del tamaño de la imagen*/
+body {
+    margin: 0;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fuente. */
+    background: url("../imag/okeykat-w6elADh_jww-unsplash.jpg"); /* Imagen de fondo. */
+    background-size: cover;  /* Ajusta la imagen para cubrir todo el contenedor. */
+    background-repeat: no-repeat; /* No repite la imagen. */
+    background-position: center; /* Centra la imagen. */
+}
+
+/* Display contenido justificado entre si, color de fondo, relleno y color de letras */
+.header {
+    display: flex; 
+    justify-content: space-between;
+    align-items: center;
+    background-color:#e47a97;
+    padding: 20px 40px;
+    color: rgb(79, 19, 19);
+    box-shadow: 5px 8px 10px; /* Sombra debajo del header. */
+}
+
+
+p{ /* Texto centrado para <p> */
+    text-align: center;
+}
+
+/* Margen hacia arriba, tamaño de la imagen. */
+.logom{
+    margin-top: 10px;
+    height: 100px;
+}
+
+/* Color de las letras, sin texto con decoración y margenes. */
+.menu a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 18px;
+}
+
+/* Con hover el elemento cambiará al posicionarse sobre este. */
+.menu a:hover {
+    text-decoration: none; /* No hay cambio. */
+    font-size: 20px;
+    font-weight: 600;
+    transition: 500ms; /* El cambio de font-size y font-weight ocurre en 0,5 segundos. */
+}
+
+/* Relleno, alineación de texto, estilo de fuente. */
+.destacados {
+    padding: 60px 40px;
+    text-align: center;
+    font-style: italic;
+}
+/**/
+
+/*relleno, bordes, fuente de letra, grid row y column para expandir verticalmente, color de fondo*/
+.servicio{ /* Contenedor 1 */
+    display: flex; /* Contenedor flexible. Elementos hijos más adaptables al interior de este. */
+    padding: 20px; /* Espacio de los elementos en el interior. */
+    border-radius: 12px; /* Redondea bordes */
+    background-color:#b4467c; /* Color de fondo */
+    gap: 100px; /* DISTANCIA ENTRE ELEMENTOS */
+    align-items: center; /* CENTRAR ELEMENTOS DENTRO VERTICALMENTE. */
+    justify-content: center; /* CENTRAR ELEMENTOS DENTRO HORIZONT. */
+    font-weight: 400; /* GROSOR LETRAS */
+    font-size: 18px; /* TAMAÑO LETRAS */
+    box-shadow: black 5px 8px 10px; /* SOMBRAS ALREDEDOR DEL CONTENEDOR */
+    color: #ffffff; /* COLOR ELEMENTOS AL INTERIOR */
+}   
+
+/*bordes, fuente de letra uso de grid para posicionar, color de fondo*/
+.servicio2 { /* Contenedor 2*/
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-weight: 400;
+    font-size: 18px;
+    background-color: #b4467c; /*COLOR DE FONDO*/
+    box-shadow: black 5px 8px 10px;
+    padding: 20px;
+    color: #ffffff;
+}
+
+/*color de fondo, relleno, bordes curvos, fuente letra, alineación de texto*/
+.servicio3 { /*Contenedor 3 */
+    display: flex;
+    padding: 20px;
+    border-radius: 14px;
+    font-weight: 400;
+    font-size: 18px;
+    background-color: #f592d5;
+    text-align: center; 
+    box-shadow: 5px 8px 10px;
+    color: rgb(47, 15, 40);
+}
+
+/*alineación de texto*/
+.titu{ /* Estilo solo para títulos */
+    padding: 20px;
+    margin: auto;
+    font-size: 22px; /*Tamaño letra */
+    font-weight: bold; /*Titulos en negrita*/
+}
+
+/*cambio de tamaño y borde redondeado/curvo */
+.img1{
+    height: 200px; /*Altura de la imagen */
+    border-radius: 20px; /*Suaviza bordes*/
+    box-shadow: black 1px 2px 10px; /*Sombras alrededor*/
+}
+
+/*cambio de tamaño en imagen, bordes, alineación hacia izquierda y hacia arriba*/
+.img2{
+    width: 200px; /*Ancho de la imagen*/
+    border-radius: 40px;
+    margin: 20px auto;
+    box-shadow: black 1px 2px 10px; /*Sombras alrededor*/  
+ }
+
+/*cambio de tamaño en imagen, margen hacia la derecha, bordes curvos, margin-top en negativo  */
+.img3{
+    width: 200px;
+    border-radius: 20px;
+    box-shadow: black 1px 2px 10px;
+}
+
+.grid-servicios{ /*Grilla principal*/
+    display: grid;
+    grid-template-columns: 2fr 1fr; /*2 columnas. Una ocupa 2 fracciones (2fr) y la otra 1 fracción (1fr).*/
+    grid-template-areas: 
+    "c1 c1" /* c1 ocupa ambas columnas. */
+    "c2 c3"
+    ;
+    gap: 1rem;
+    max-width: 1200px; /*Ancho máximo de la grilla. */
+    padding: 0 1rem; /* Relleno 0 parte superior e inferior. Relleno de 1rem izquierda y derecha. */
+    margin: 20px auto; /* Distribuye automaticamente el margen izquierdo y derecho. */
+}
+
+.c1{ grid-area: c1;}
+.c2{ grid-area: c2;}
+.c3{ grid-area: c3;}
+
+
+@media (max-width:1024px){ /* Ajustes específicos para dispositivos con ancho máximo 1024px (Tablet). */
+    .grid-servicios{
+        grid-template-columns: 1fr 2fr;
+        grid-template-areas: 
+        "c1 c1"
+        "c2 c3";
+        gap: 1.5rem;
+        margin: 50px auto;
+        padding: 0 1rem;
+    }
+
+    .servicio {
+        display: flex; /* Flex para que sea un contenedor. */
+        padding: 20px; /* Espacio desde dentro del contenedor. */
+        border-radius: 12px;
+        gap: 50px;
+        text-align: center;
+        font-weight: 400;
+        font-size: 16px;
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: black 5px 8px 10px;
+    }   
+
+    /*bordes, fuente de letra uso de grid para posicionar, color de fondo*/
+    .servicio2 {
+        display: flex;
+        border-radius: 14px;
+        font-weight: 400;
+        font-size: 16px;
+        align-items: center;
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow:black 5px 8px 10px;
+    }
+
+    /*color de fondo, relleno, bordes curvos, fuente letra, alineación de texto*/
+    .servicio3 {
+        display: flex;
+        padding: 20px;
+        border-radius: 5px;
+        font-weight: 400;
+        font-size: 16px;
+        text-align: center; 
+        align-items: center;
+        justify-content: center;
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: black 5px 8px 10px;
+    }
+
+    .img1{
+        max-width: 12%;
+        height: auto;
+        border-radius: 20px;
+        margin: 10px auto;
+        box-shadow: #000000 1px 2px 10px;
+    }
+
+    /*cambio de tamaño en imagen, bordes, alineación hacia izquierda y hacia arriba*/
+    .img2{
+        width: 100px;
+        max-width: 50%;
+        height: auto;
+        border-radius: 40px;
+        box-shadow: #000000 1px 2px 10px;
+    }
+
+    /*cambio de tamaño en imagen, margen hacia la derecha, bordes curvos, margin-top en negativo  */
+    .img3{
+        width: 100px;
+        max-width: 50%;
+        height: auto;
+        border-radius: 20px;
+        margin: 10px auto;
+        box-shadow: black 1px 2px 10px;
+    }
+
+    .titu{
+        font-size: 20px;
+        font-weight: bold;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        text-align: center;
+        margin: 0 auto;
+        padding: 0px;
+    }
+
+}
+@media (max-width:600px){ /*Ajustes específicos para disp. con ancho máximo 600px (Smartphone). */
+    .grid-servicios{
+        grid-template-columns: 1fr; /*1 sola columna */
+        grid-template-areas: 
+        "c1" 
+        "c2"
+        "c3"
+        ;
+        gap: 1rem;
+        margin: 20px auto;
+        padding: 10px;
+    }
+    
+
+    .servicio {
+        display: flex;
+        border-radius: 12px;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        padding: 10px;
+        font-weight: 400;
+        font-size: 14px;
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: black 5px 8px 10px;
+    }   
+
+    /*bordes, fuente de letra uso de grid para posicionar, color de fondo*/
+    .servicio2 {
+        display: flex;
+        border-radius: 14px;
+        font-weight: 400;
+        font-size: 14px;
+        padding: 30px;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: black 5px 8px 10px;
+    }
+
+    /*color de fondo, relleno, bordes curvos, fuente letra, alineación de texto*/
+    .servicio3 {
+        display: flex;
+        border-radius: 14px;
+        font-weight: 400;
+        font-size: 14px;
+        text-align: center; 
+        font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow:black 5px 8px 10px;
+    }
+
+    .img1{
+        display: block;
+        width: 100px;
+        max-width: 100%;
+        height: auto;
+        box-shadow: black 1px 2px 10px;
+    }
+
+    /*cambio de tamaño en imagen, bordes, alineación hacia izquierda y hacia arriba*/
+    .img2{
+        display: block;
+        max-width: 100%;
+        height: auto;
+        box-shadow:black 1px 2px 10px;
+    }
+
+    /*cambio de tamaño en imagen, margen hacia la derecha, bordes curvos, margin-top en negativo  */
+    .img3{
+        display: block;
+        max-width: 100%;
+        height: auto;
+        box-shadow:black 1px 2px 10px;
+    }
+
+    .titu{
+        font-size: 18px;
+        font-weight: 500;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        text-align: center;
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    .nav-desktop {
+        display: none;
+    }
+
+    /* Muestra el cuadro con opciones en móvil */
+    .nav-mobile {
+        display: block;
+        padding: 10px;
+    }
+
+    .menu-box {
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        padding: 15px;
+        border-radius: 10px;
+    }
+
+    .menu-box a {
+        display: block;
+        margin-bottom: 10px;
+        text-decoration: none;
+        color: #333;
+    }
+
+}
+/* FOOTER */
+.footer {
+    background-color:#e47a97;
+    color: rgb(0, 0, 0);
+    padding: 12px;
+    text-align: center;
+}
