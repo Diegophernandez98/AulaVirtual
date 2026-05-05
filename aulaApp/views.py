@@ -27,9 +27,29 @@ def home(request):
 def nosotros(request):
     return render(request, "nosotros.html")
 
+@login_required
 def buscarProfesor(request):
-    # Esta vista podría ser redundante si usas panel_estudiante
-    return render(request, "buscarProfesor.html")
+    # Trasladamos la lógica de búsqueda que estaba en panel_estudiante hacia aquí
+    profesores = Usuario.objects.filter(tipo_usuario__nombre__icontains='Profesor')
+
+    query = request.GET.get('q')      
+    filtro = request.GET.get('filtro')  
+
+    if query:
+        if filtro == 'asignatura':
+            profesores = profesores.filter(asignaturas__nombre__icontains=query).distinct()
+        else:
+            profesores = profesores.filter(
+                Q(nombre__icontains=query) | 
+                Q(apellido__icontains=query)
+            )
+
+    context = {
+        'profesores': profesores, 
+    }
+    # Asegúrate de tener un archivo HTML llamado 'buscarProfesor.html' 
+    # y pega allí el código de la tarjeta de búsqueda y lista de profesores que quitaste.
+    return render(request, "buscarProfesor.html", context)
 
 # --- VISTAS DE AUTENTICACIÓN ---
 
@@ -135,37 +155,32 @@ def login_view(request):
 # --- PANELES PRINCIPALES ---
 @login_required
 def panel_estudiante(request):
-    if request.user.tipo_usuario.nombre != 'Estudiante':
+    if request.user.tipo_usuario.nombre.lower() != 'estudiante':
         return redirect('login')
     
+    # 1. Obtenemos el tiempo actual
+    ahora = timezone.now()
+    margen_tiempo = ahora - timedelta(minutes=90)
 
-    profesores = Usuario.objects.filter(tipo_usuario__nombre='Profesor')
+    # 2. Filtramos las próximas clases para que se vean en el panel principal
+    clases_proximas = ClasesAgendadas.objects.filter(
+        estudiante=request.user,
+        fecha__gte=margen_tiempo,
+        estado='AGEN',
+        oculto_para_estudiante=False # Respetamos el borrado lógico
+    ).order_by('fecha')
 
-    query = request.GET.get('q') #no importa si es minus o mayus, y busca si contiene la palabra ingresada.       
-    filtro = request.GET.get('filtro')  
-
-    if query:
-        if filtro == 'asignatura':
-            profesores = profesores.filter(asignaturas__nombre__icontains=query).distinct()
-        else:
-            profesores = profesores.filter(
-                Q(nombre__icontains=query) | 
-                Q(apellido__icontains=query)
-            )
-
-    # CAMBIO AQUÍ: La clave del diccionario ahora es 'profesores'
+    # 3. Enviamos las clases al template
     context = {
-        'profesores': profesores, 
+        'clases_proximas': clases_proximas, 
     }
 
     return render(request, 'estudiante.html', context)
 
 
-
 @login_required
 def panel_docente(request):
     # 1. Seguridad
-    # Verificamos si existe el tipo de usuario para evitar errores de atributo
     rol = request.user.tipo_usuario.nombre.lower() if request.user.tipo_usuario else ''
     if rol not in ['docente', 'profesor']:
         return redirect('home')
@@ -174,33 +189,36 @@ def panel_docente(request):
     now = timezone.localtime(timezone.now())
     hoy = now.date()
     manana = hoy + timedelta(days=1)
+    
+    # Margen de tiempo para considerar una clase como "Próxima" (igual que en mis_clases_agendadas)
+    margen_tiempo = now - timedelta(minutes=90)
 
-    # 3. Obtener clases futuras (mantenemos tu filtro)
-    clases_futuras = ClasesAgendadas.objects.filter(
+    # 3. Obtener todas las clases futuras (Para la tabla principal)
+    clases_proximas = ClasesAgendadas.objects.filter(
         docente=request.user,
-        fecha__gte=now,
+        fecha__gte=margen_tiempo, # Usamos el margen de 90 min
         estado='AGEN'
     ).order_by('fecha')
 
-    # 4. Agrupar las clases en listas separadas para el template
+    # 4. Agrupar las clases en listas separadas para el Resumen (Hoy/Mañana)
     clases_hoy = []
     clases_manana = []
 
-    for clase in clases_futuras:
-        fecha_clase = clase.fecha.date()
+    for clase in clases_proximas: # Iteramos sobre la lista ya filtrada
+        fecha_clase = timezone.localtime(clase.fecha).date() # Aseguramos que sea hora local
         
         if fecha_clase == hoy:
             clases_hoy.append(clase)
         elif fecha_clase == manana:
             clases_manana.append(clase)
-        # Nota: Las clases posteriores no se necesitan para este "Resumen de actividad",
-        # por lo que no es necesario guardarlas en una lista extra aquí.
 
     # 5. Contexto para el template
     context = {
-        'clases_hoy': clases_hoy,       # Usado en el bucle {% for clase in clases_hoy %}
-        'clases_manana': clases_manana, # Usado en el bucle {% for clase in clases_manana %}
-        'now': now,                     # ¡IMPORTANTE! Usado para la fecha en la cabecera {{ now|date... }}
+        'clases_proximas': clases_proximas, # <- NUEVO: Toda la lista para la tabla
+        'clases_hoy': clases_hoy,
+        'clases_manana': clases_manana,
+        'now': now,
+        'es_docente': True # <- NUEVO: Para reutilizar el HTML de botones
     }
 
     return render(request, "docente.html", context)
@@ -339,26 +357,23 @@ def eliminar_horario(request, id):
 @login_required
 def mis_clases_agendadas(request):
     usuario_actual = request.user
-    
     rol_nombre = usuario_actual.tipo_usuario.nombre.lower() if usuario_actual.tipo_usuario else ''
     
+    # NUEVO: Filtramos para que solo traiga las que NO están ocultas para este usuario
     if rol_nombre == 'estudiante':
-        clases_del_usuario = ClasesAgendadas.objects.filter(estudiante=usuario_actual)
+            clases_del_usuario = ClasesAgendadas.objects.filter(
+                estudiante=usuario_actual
+            ).exclude(oculto_para_estudiante=True) # <-- Excluir donde sea True explícitamente
     else:
-        clases_del_usuario = ClasesAgendadas.objects.filter(docente=usuario_actual)
+        clases_del_usuario = ClasesAgendadas.objects.filter(
+            docente=usuario_actual
+        ).exclude(oculto_para_docente=True) # <-- Excluir donde sea True explícitamente
 
-    # --- CORRECCIÓN AQUÍ ---
     ahora = timezone.now()
-    
-    # Restamos tiempo (ej: 90 minutos) para que la clase se mantenga en "Próximas"
-    # durante su desarrollo y un poco después.
-    # Necesitas importar timedelta arriba: from datetime import timedelta
     margen_tiempo = ahora - timedelta(minutes=90)
 
-    # Filtramos usando este margen
+    # Filtramos usando este margen (esto se mantiene igual)
     clases_proximas = clases_del_usuario.filter(fecha__gte=margen_tiempo).order_by('fecha')
-    
-    # Las pasadas son las que ocurrieron hace más de 90 minutos
     clases_pasadas = clases_del_usuario.filter(fecha__lt=margen_tiempo).order_by('-fecha')
 
     clases = {
@@ -533,19 +548,21 @@ def confirmar_reserva(request, horario_id):
     if not asignatura_clase:
         asignatura_clase, created = Asignatura.objects.get_or_create(nombre="Clase Particular")
 
-    # Crear la reserva
+    # CREAR LA RESERVA (AQUÍ ESTÁ EL CAMBIO)
     ClasesAgendadas.objects.create(
         fecha=fecha_hora_final,
         costo=15000, 
         asignatura=asignatura_clase,
         estudiante=request.user,
         docente=horario_base.docente,
-        estado='AGEN'
+        estado='AGEN',
+        # Aseguramos que los campos de borrado lógico inicien en False
+        oculto_para_estudiante=False, 
+        oculto_para_docente=False
     )
-    
-    # Opcional: Eliminar la disponibilidad para que nadie más la tome
-    # horario_base.delete() 
 
+    
+    
     messages.success(request, "¡Clase reservada exitosamente para el " + str(fecha_clase) + "!")
     return redirect('perfil_profesor', id=horario_base.docente.id)
 
@@ -553,25 +570,35 @@ def confirmar_reserva(request, horario_id):
 
 @login_required
 def cancelar_clase(request, clase_id):
-    # Obtener la clase o devolver 404 si no existe
     clase = get_object_or_404(ClasesAgendadas, id=clase_id)
 
-    # SEGURIDAD: Solo el estudiante o el docente de esa clase pueden cancelarla
-    # Si el usuario actual no es ni el estudiante ni el docente, lo expulsamos
+    # SEGURIDAD: Solo el estudiante o el docente de esa clase pueden modificarla
     if request.user != clase.estudiante and request.user != clase.docente:
-        messages.error(request, "No tienes permiso para cancelar esta clase.")
+        messages.error(request, "No tienes permiso para realizar esta acción.")
         return redirect('mis_clases_agendadas')
 
-    # Si la clase ya pasó, no debería poder cancelarse (opcional, pero recomendado)
+    # LÓGICA DE BORRADO
     if clase.fecha < timezone.now():
-        messages.error(request, "No puedes cancelar una clase que ya ocurrió.")
-        return redirect('mis_clases_agendadas')
+        # 1. Es una clase pasada (Historial): Hacemos un BORRADO LÓGICO (Ocultar)
+        if request.user == clase.estudiante:
+            clase.oculto_para_estudiante = True
+            messages.success(request, "Registro eliminado de tu historial.")
+        elif request.user == clase.docente:
+            clase.oculto_para_docente = True
+            messages.success(request, "Registro eliminado de tu historial.")
+        
+        clase.save() # Guardamos los cambios en lugar de usar .delete()
 
-    # ELIMINAR LA CLASE
-    # Al borrarla de ClasesAgendadas, el horario original en 'Disponibilidad'
-    # sigue intacto en su tabla, por lo que volverá a aparecer libre
-    # para que otro alumno lo reserve (según tu lógica actual de perfil_profesor).
-    clase.delete()
+    else:
+        # 2. Es una clase futura: Hacemos un BORRADO FÍSICO (Cancelar de verdad)
+        clase.delete()
+        messages.success(request, "La clase ha sido cancelada exitosamente.")
 
-    messages.success(request, "La clase ha sido cancelada exitosamente.")
-    return redirect('mis_clases_agendadas')
+    # Redirección para devolver al usuario a la página donde estaba
+    referer = request.META.get('HTTP_REFERER')
+    if referer and 'mis_clases_agendadas' in referer:
+         return redirect('mis_clases_agendadas')
+    elif request.user.tipo_usuario.nombre.lower() in ['docente', 'profesor']:
+         return redirect('docente')
+    else:
+         return redirect('estudiante')

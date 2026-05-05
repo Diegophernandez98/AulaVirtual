@@ -101,13 +101,18 @@ class ClasesAgendadas(models.Model):
         default=EstadoClase.AGENDADA
     )
 
-    # --- NUEVO CAMPO AGREGADO ---
+
     # Guardará el JSON de Excalidraw como texto.
     # default="[]" asegura que empiece como una pizarra vacía válida.
     datos_pizarra = models.TextField(blank=True, null=True, default="[]")
 
     def __str__(self):
         return f"Clase de {self.asignatura.nombre} - {self.fecha.strftime('%Y-%m-%d %H:%M')}"
+    
+    
+    # NUEVOS CAMPOS PARA EL BORRADO LÓGICO EN EL HISTORIAL
+    oculto_para_estudiante = models.BooleanField(default=False)
+    oculto_para_docente = models.BooleanField(default=False)
 
 
 
