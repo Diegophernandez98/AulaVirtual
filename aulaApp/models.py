@@ -74,46 +74,6 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f"{self.nombre} {self.apellido} ({self.username})"
 
-# --- MODELOS DE NEGOCIO ---
-
-class ClasesAgendadas(models.Model):
-    # Opciones para estados de la clase
-    class EstadoClase(models.TextChoices):
-        AGENDADA = 'AGEN', 'Agendada'
-        COMPLETADA = 'COMP', 'Completada'
-        CANCELADA = 'CANC', 'Cancelada'
-
-    fecha = models.DateTimeField()
-    costo = models.DecimalField(max_digits=10, decimal_places=2)
-    asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
-
-    estudiante = models.ForeignKey(Usuario, on_delete=models.CASCADE, 
-            related_name='clases_como_estudiante', 
-            limit_choices_to={'tipo_usuario__id': 1})
-    
-    docente = models.ForeignKey(Usuario, on_delete=models.CASCADE, 
-            related_name='clases_como_docente', 
-            limit_choices_to={'tipo_usuario__id': 2})
-    
-    estado = models.CharField(
-        max_length=4,
-        choices=EstadoClase.choices,
-        default=EstadoClase.AGENDADA
-    )
-
-
-    # Guardará el JSON de Excalidraw como texto.
-    # default="[]" asegura que empiece como una pizarra vacía válida.
-    datos_pizarra = models.TextField(blank=True, null=True, default="[]")
-
-    def __str__(self):
-        return f"Clase de {self.asignatura.nombre} - {self.fecha.strftime('%Y-%m-%d %H:%M')}"
-    
-    
-    # NUEVOS CAMPOS PARA EL BORRADO LÓGICO EN EL HISTORIAL
-    oculto_para_estudiante = models.BooleanField(default=False)
-    oculto_para_docente = models.BooleanField(default=False)
-
 
 
 
@@ -134,6 +94,43 @@ class Disponibilidad(models.Model):
     hora_fin = models.TimeField()
     
 
+# 2. Disponibilidad Múltiple (Regla de repetición semanal) - ¡NUEVO, AÑADIR ESTO!
+class DisponibilidadMultiple(models.Model):
+    fecha_inicio = models.DateField(help_text="Fecha de inicio de la repetición semanal")
+    fecha_fin = models.DateField(help_text="Fecha de término de la repetición semanal")
+    # Usaremos IntegerField para el día de la semana (1=Lunes, 7=Domingo)
+    dia_semana = models.IntegerField(help_text="1=Lunes, 2=Martes, ..., 7=Domingo")
+    hora_inicio = models.TimeField()
+    hora_fin = models.TimeField()
+    docente = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='disponibilidades_multiples')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Regla Semanal {self.docente} - Día {self.dia_semana} ({self.hora_inicio}-{self.hora_fin})"
+    
+
+# --- MODELOS DE CLASES Y PAGOS (Se mantienen igual) ---
+class ClasesAgendadas(models.Model):
+    fecha = models.DateTimeField()
+    costo = models.IntegerField()
+    asignatura = models.ForeignKey(Asignatura, on_delete=models.CASCADE)
+    estudiante = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='clases_estudiante')
+    docente = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='clases_docente')
+    estado = models.CharField(max_length=20, default='AGEN')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    # Campos de borrado lógico (Añadidos en turnos anteriores)
+    oculto_para_estudiante = models.BooleanField(default=False)
+    oculto_para_docente = models.BooleanField(default=False)
+
+    # Enlace ForeignKey (Añadido en turnos anteriores para optimización)
+    horario = models.ForeignKey(Disponibilidad, on_delete=models.SET_NULL, null=True, blank=True, related_name='clase_registrada')
+    datos_pizarra = models.TextField(null=True, blank=True)
+    historial_chat = models.TextField(default="[]") # Guardaremos una lista de objetos JSON
+
+    def __str__(self):
+        return f"Clase {self.asignatura} - {self.fecha}"
+    
 
 
 class ComprobantePago(models.Model):
@@ -160,4 +157,3 @@ class ComprobantePago(models.Model):
 
     def __str__(self):
         return f"Pago de {self.total} para {self.clase_agendada}"
-    

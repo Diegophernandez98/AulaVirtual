@@ -11,6 +11,25 @@
 <script src="https://unpkg.com/@excalidraw/excalidraw@0.17.6/dist/excalidraw.production.min.js"></script>
 
 <style>
+
+    /* sala.html - Sección de Estilos */
+
+    [data-bs-theme="dark"] .pagination-bar {
+        background-color: #2b3035 !important; /* Fondo oscuro para la barra */
+        border-color: #495057 !important;
+    }
+
+    [data-bs-theme="dark"] .page-indicator {
+        color: #f8f9fa !important; /* Números en blanco */
+    }
+
+    [data-bs-theme="dark"] .pagination-bar .btn-light {
+        background-color: #343a40 !important;
+        border-color: #495057 !important;
+        color: #ffffff !important;
+    }
+
+
     /* Cursores Remotos */
     .remote-cursor { position: absolute; width: 12px; height: 12px; background: #dc3545; border-radius: 50%; pointer-events: none; z-index: 900; display: none; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.1s linear; }
     .remote-cursor-label { position: absolute; top: 12px; left: 12px; background: #dc3545; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; white-space: nowrap; }
@@ -201,6 +220,7 @@
     const TARGET_ID = `sala_${ROOM_ID}_${ES_DOCENTE ? 'estudiante' : 'docente'}`;
     const CLASE_ID_REAL = "{{ clase_id_real }}";
     const INITIAL_DATA_JSON = '{{ datos_pizarra_inicial|escapejs }}';
+    const INITIAL_CHAT_JSON = '{{ clase.historial_chat|escapejs }}';
     
     let pages = [ [] ]; 
     let currentPage = 0;
@@ -219,6 +239,18 @@
     let mediaRecorder;
     let recordedChunks = [];
     let isRecording = false;
+
+    // Al cargar la página, recorremos el historial y los mostramos
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            const historial = JSON.parse(INITIAL_CHAT_JSON || '[]');
+            historial.forEach(msg => {
+                // 'Tú' si el nombre coincide con el del usuario actual
+                const esMio = msg.remitente === "{{ request.user.nombre }}";
+                addChatMessage(msg.remitente, msg.texto, esMio);
+            });
+        } catch(e) { console.error("Error cargando chat:", e); }
+    });
 
     // --- LOGICA UI ---
     window.toggleVideoContainer = function(c) {
@@ -383,10 +415,14 @@
 
     // --- DATOS Y PAGINACIÓN ---
     function handleDataMessage(payload) {
-        if(typeof payload === 'string') addChatMessage("El otro", payload, false);
+        if (payload.type === 'CHAT_MSG') {
+        addChatMessage(payload.remitente, payload.texto, false);
+    }
         else if(payload.type === 'MEDIA_STATUS') updateRemoteMediaUI(payload);
-        else if(payload.type === 'CURSOR_MOVE') updateRemoteCursor(payload.x, payload.y);
-        else if(payload.type === 'PIZARRA_UPDATE') { 
+        else if(
+            payload.type === 'CURSOR_MOVE') updateRemoteCursor(payload.x, payload.y);
+        else if(
+            payload.type === 'PIZARRA_UPDATE') { 
             if (payload.pageIndex === undefined || payload.pageIndex === currentPage) {
                 if(excalidrawAPI) excalidrawAPI.updateScene({ elements: payload.data }); 
             }
@@ -509,27 +545,58 @@
         }
     });
 
-    function sendMessage() {
-        const i = document.getElementById('chat-input'); if(!i.value||!conn) return;
-        conn.send(i.value); addChatMessage("Tú", i.value, true); i.value = "";
+
+
+    async function sendMessage() {
+        const input = document.getElementById('chat-input');
+        if(!input.value || !conn) return;
+
+        const texto = input.value;
+        const remitente = "{{ request.user.nombre }}";
+
+        // 1. Enviar por PeerJS al otro usuario (Tiempo real)
+        conn.send({ type: 'CHAT_MSG', texto: texto, remitente: remitente });
+
+        // 2. Mostrar en mi pantalla
+        addChatMessage("Tú", texto, true);
+
+        // 3. Guardar en la Base de Datos (Persistencia)
+        await fetch(`/api/chat/guardar/${CLASE_ID_REAL}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ remitente: remitente, texto: texto })
+        });
+
+        input.value = "";
     }
+
+
     function addChatMessage(s, t, m) {
-        const b = document.getElementById('chat-box'), a = m ? "align-self-end text-end" : "align-self-start text-start", c = m ? "bg-primary text-white" : "bg-white border text-dark";
-        b.innerHTML += `<div class="${a} mb-2"><div class="p-2 rounded ${c}">${t}</div></div>`; b.scrollTop = b.scrollHeight;
+        const b = document.getElementById('chat-box');
+        const a = m ? "align-self-end text-end" : "align-self-start text-start";
+        
+        // CAMBIO: Usamos 'bg-body-secondary' que cambia solo según el modo
+        const c = m ? "bg-primary text-white" : "bg-body-secondary border shadow-sm";
+        
+        b.innerHTML += `<div class="${a} mb-2"><div class="p-2 rounded ${c}">${t}</div></div>`;
+        b.scrollTop = b.scrollHeight;
     }
     document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key==='Enter') sendMessage(); });
+
 
     function toggleAudio() { 
         if(!localStream) return;
         const t = localStream.getAudioTracks()[0]; mediaState.audio = !mediaState.audio; t.enabled = mediaState.audio;
         updateLocalControlsUI(); sendMediaStatus();
     }
+
     function toggleVideo() { 
         if(!localStream) return;
         const t = localStream.getVideoTracks()[0]; mediaState.video = !mediaState.video; t.enabled = mediaState.video;
         updateLocalControlsUI(); document.getElementById('local-camera-overlay').style.display = mediaState.video ? 'none' : 'flex';
         sendMediaStatus();
     }
+
     function updateLocalControlsUI() {
         const a = document.getElementById('btn-audio'), v = document.getElementById('btn-video');
         a.className = mediaState.audio ? "btn-video-control active" : "btn-video-control inactive";
@@ -537,10 +604,15 @@
         v.className = mediaState.video ? "btn-video-control active" : "btn-video-control inactive";
         v.innerHTML = mediaState.video ? '<i class="bi bi-camera-video-fill"></i>' : '<i class="bi bi-camera-video-off-fill"></i>';
     }
-    function sendMediaStatus() { if(conn) conn.send({ type: 'MEDIA_STATUS', audio: mediaState.audio, video: mediaState.video }); }
+
+    function sendMediaStatus() { 
+        if(conn) conn.send({ type: 'MEDIA_STATUS', audio: mediaState.audio, video: mediaState.video }); 
+    }
+
     function updateRemoteMediaUI(s) {
         document.getElementById('remote-camera-overlay').style.display = s.video ? 'none' : 'flex';
         document.getElementById('remote-mic-badge').style.display = s.audio ? 'none' : 'block';
     }
+
 </script>
 {% endblock %}

@@ -28,4 +28,5 @@ urlpatterns = [
     path('api/pizarra/guardar/<int:clase_id>/', views.guardar_pizarra, name='guardar_pizarra'),
     path('login/', views.login_view, name='login'),
     path('registro/', views.registro, name="registro"),
+    path('api/chat/guardar/<int:clase_id>/', views.guardar_mensaje_chat, name='guardar_mensaje_chat'),
 ]

@@ -1,8 +1,78 @@
 from django import forms
-from aulaApp.models import TipoUsuario, Disponibilidad
+from aulaApp.models import TipoUsuario, Disponibilidad, DisponibilidadMultiple
 from django.utils import timezone
 import datetime
+from django.core.exceptions import ValidationError
 
+
+DIAS_CHOICES = [
+    (1, 'Lunes'),
+    (2, 'Martes'),
+    (3, 'Miércoles'),
+    (4, 'Jueves'),
+    (5, 'Viernes'),
+    (6, 'Sábado'),
+    (7, 'Domingo'),
+]
+
+# --- DEFINICIÓN DE BloqueIndividualForm (AÑADIR ESTO) ---
+class BloqueIndividualForm(forms.ModelForm):
+    class Meta:
+        model = Disponibilidad
+        fields = ['fecha', 'hora_inicio', 'hora_fin']
+        widgets = {
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'hora_inicio': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'hora_fin': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+        }
+        labels = {
+            'fecha': 'Selecciona la Fecha',
+            'hora_inicio': 'Hora de Inicio',
+            'hora_fin': 'Hora de Término',
+        }
+    
+    # Opcional: Validación para asegurar que hora_fin sea posterior a hora_inicio
+    def clean(self):
+        cleaned_data = super().clean()
+        hora_inicio = cleaned_data.get("hora_inicio")
+        hora_fin = cleaned_data.get("hora_fin")
+
+        if hora_inicio and hora_fin and hora_fin <= hora_inicio:
+            raise ValidationError("La hora de término debe ser posterior a la hora de inicio.")
+        return cleaned_data
+# -----------------------------------------------------------
+
+
+# --- DEFINICIÓN DE BloqueMultipleForm (Verificar que esté así) ---
+class BloqueMultipleForm(forms.ModelForm):
+    class Meta:
+        model = DisponibilidadMultiple
+        fields = ['fecha_inicio', 'fecha_fin', 'dia_semana', 'hora_inicio', 'hora_fin']
+        widgets = {
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_fin': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'dia_semana': forms.Select(choices=DIAS_CHOICES, attrs={'class': 'form-select'}), # Usamos Select para elegir el día
+            'hora_inicio': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+            'hora_fin': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
+        }
+        labels = {
+            'fecha_inicio': 'Fecha de Inicio (Semana)',
+            'fecha_fin': 'Fecha de Término (Semana)',
+            'dia_semana': 'Día de la Semana',
+            'hora_inicio': 'Hora de Inicio (Bloque)',
+            'hora_fin': 'Hora de Término (Bloque)',
+        }
+
+    # Opcional: Validación para asegurar que hora_fin sea posterior a hora_inicio
+    def clean(self):
+        cleaned_data = super().clean()
+        hora_inicio = cleaned_data.get("hora_inicio")
+        hora_fin = cleaned_data.get("hora_fin")
+
+        if hora_inicio and hora_fin and hora_fin <= hora_inicio:
+            raise ValidationError("La hora de término debe ser posterior a la hora de inicio.")
+        return cleaned_data
+    
 class LoginUsuario(forms.Form):
     username = forms.CharField(max_length=50, required=True, label="Nombre de usuario")
     password = forms.CharField(max_length=50, required=True, label="Contraseña")
@@ -67,88 +137,14 @@ class RegistroUsuarioForm(forms.Form):
 
 
 class DisponibilidadForm(forms.ModelForm):
-    # Definimos los meses en español
-    MESES = [
-        (1, 'Enero'), (2, 'Febrero'), (3, 'Marzo'), (4, 'Abril'),
-        (5, 'Mayo'), (6, 'Junio'), (7, 'Julio'), (8, 'Agosto'),
-        (9, 'Septiembre'), (10, 'Octubre'), (11, 'Noviembre'), (12, 'Diciembre')
-    ]
-
-    # Campos "falsos" que no se guardan directo en la BD, sirven para construir la fecha
-    dia = forms.IntegerField(
-        min_value=1, 
-        max_value=31, 
-        label="Día",
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 15'})
-    )
-    mes = forms.ChoiceField(
-        choices=MESES, 
-        label="Mes",
-        widget=forms.Select(attrs={'class': 'form-select'}) # 'form-select' es estilo Bootstrap
-    )
-
     class Meta:
         model = Disponibilidad
-        # EXCLUIMOS 'fecha' porque la calcularemos nosotros
-        fields = ['hora_inicio', 'hora_fin'] 
+        fields = ['fecha', 'hora_inicio', 'hora_fin']  # <--- 'fecha' DEBE estar aquí
         widgets = {
-            'hora_inicio': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}), 
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'hora_inicio': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'hora_fin': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
         }
-
-
-
-# En forms.py
-
-    def clean(self):
-        cleaned_data = super().clean()
-        dia = cleaned_data.get("dia")
-        mes = cleaned_data.get("mes")
         
-        hora_inicio = cleaned_data.get("hora_inicio")
-        hora_fin = cleaned_data.get("hora_fin")
-
-        # --- CORRECCIÓN AQUÍ ---
-        # Antes bloqueábamos si hora_fin <= hora_inicio.
-        # Ahora permitimos hora_fin < hora_inicio (asumiendo que es al día siguiente).
-        # Solo bloqueamos si son EXACTAMENTE iguales (clase de 0 minutos).
-        if hora_inicio and hora_fin and hora_inicio == hora_fin:
-            self.add_error('hora_fin', "La hora de inicio y término no pueden ser iguales.")
-        # -----------------------
-
-        if dia and mes:
-            try:
-                ahora_chile = timezone.localtime(timezone.now())
-                hoy = ahora_chile.date()
-                hora_actual = ahora_chile.time()
-                
-                year_actual = hoy.year
-                mes_int = int(mes)
-                
-                # 1. Construimos la fecha tentativa
-                fecha_construida = datetime.date(year=year_actual, month=mes_int, day=dia)
-                
-                # 2. Lógica de Año Inteligente
-                if mes_int < hoy.month:
-                    fecha_construida = datetime.date(year=year_actual + 1, month=mes_int, day=dia)
-                
-                # 3. VALIDACIÓN DE FECHA Y HORA
-                
-                # A) Si la fecha de INICIO es pasado
-                if fecha_construida < hoy:
-                    self.add_error('dia', "No puedes crear una hora en una fecha pasada.")
-                
-                # B) Si es HOY, validamos que la HORA DE INICIO no haya pasado
-                elif fecha_construida == hoy and hora_inicio:
-                    if hora_inicio < hora_actual:
-                        self.add_error('hora_inicio', "Esa hora de inicio ya pasó.")
-
-                cleaned_data['fecha_calculada'] = fecha_construida
-
-            except ValueError:
-                self.add_error('dia', "La fecha ingresada no es válida.")
-        
-        return cleaned_data
-
 class AgendarClaseForm(forms.Form):
     pass

@@ -36,6 +36,306 @@
         }
       }
     </script>
+    <style>
+        /* Reglas globales para Modo Oscuro */
+        [data-bs-theme="dark"] {
+            --bs-body-color: #f8f9fa; /* Color de texto principal */
+            --bs-body-bg: #212529;    /* Asegura un fondo oscuro consistente */
+        }
+
+        /* Colores originales para los iconos en modo oscuro */
+        [data-bs-theme="dark"] .bi-calendar-event, 
+        [data-bs-theme="dark"] .bi-calendar3 {
+            color: #0d6efd !important; /* Azul Bootstrap original */
+        }
+
+        [data-bs-theme="dark"] .bi-receipt-cutoff, 
+        [data-bs-theme="dark"] .bi-check-square {
+            color: #198754 !important; /* Verde Bootstrap original */
+        }
+
+        [data-bs-theme="dark"] .card {
+            background-color: rgba(43, 48, 53, 0.8) !important; /* Fondo gris oscuro translúcido */
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            transition: transform 0.3s ease;
+        }
+
+        /* Efecto al pasar el mouse para que se sienta vivo */
+        [data-bs-theme="dark"] .card:hover {
+            transform: translateY(-5px);
+            background-color: rgba(52, 58, 64, 0.9) !important;
+            border-color: #0d6efd !important; /* Borde azul al resaltar */
+        }
+
+        [data-bs-theme="dark"] body {
+            color: #f8f9fa;
+        }
+
+        /* Forzar color claro en encabezados, párrafos y etiquetas */
+        [data-bs-theme="dark"] h1, 
+        [data-bs-theme="dark"] h2, 
+        [data-bs-theme="dark"] h3, 
+        [data-bs-theme="dark"] h4, 
+        [data-bs-theme="dark"] h5, 
+        [data-bs-theme="dark"] h6,
+        [data-bs-theme="dark"] p,
+        [data-bs-theme="dark"] span,
+        [data-bs-theme="dark"] label,
+        [data-bs-theme="dark"] .form-text {
+            color: #f8f9fa;
+        }
+
+        /* Ajustes específicos para tablas en modo oscuro */
+        [data-bs-theme="dark"] .table {
+            --bs-table-color: #f8f9fa;
+            --bs-table-striped-color: #f8f9fa;
+            border-color: #495057;
+        }
+
+        [data-bs-theme="dark"] .table thead th {
+            color: #ffffff !important;
+            background-color: #343a40 !important;
+        }
+
+        [data-bs-theme="dark"] .table tbody td {
+            color: #e9ecef !important;
+        }
+
+        /* Sobrescribir clases de utilidad de Bootstrap que tengan colores oscuros */
+        [data-bs-theme="dark"] .text-black,
+        [data-bs-theme="dark"] .text-dark,
+        [data-bs-theme="dark"] .text-secondary {
+            color: #dee2e6 !important;
+        }
+
+        [data-bs-theme="dark"] .card-header {
+            background-color: #2b3035 !important;
+            color: #ffffff !important;
+        }
+
+
+
+        /* Reglas para mantener los colores originales del Dashboard */
+        /* Tarjeta de Gestionar Horario (Azul) */
+        [data-bs-theme="dark"] .bg-primary, 
+        [data-bs-theme="dark"] .btn-primary {
+            background-color: #0d6efd !important; /* Azul original */
+            color: #ffffff !important; /* Siempre texto blanco aquí */
+        }
+
+        /* Tarjeta de Historial (Verde) */
+        [data-bs-theme="dark"] .bg-success,
+        [data-bs-theme="dark"] .btn-success {
+            background-color: #198754 !important; /* Verde original */
+            color: #ffffff !important; /* Siempre texto blanco aquí */
+        }
+
+        /* Asegurar que los iconos dentro de estas tarjetas no se pierdan */
+        [data-bs-theme="dark"] .bg-primary i, 
+        [data-bs-theme="dark"] .bg-success i {
+            color: #ffffff !important;
+        }
+
+        
+    [data-bs-theme="dark"] .content-card {
+        /* Cambiamos el fondo blanco por uno oscuro */
+        background-color: #212529 !important; 
+        border: 1px solid #495057 !important;
+        color: #f8f9fa !important;
+    }
+
+    /* Ajuste para la tarjeta del título que está dentro del content-card */
+    [data-bs-theme="dark"] .content-card .card {
+        background-color: transparent !important;
+        border: none !important;
+        color: inherit !important;
+    }
+
+    /* Asegurar que el texto descriptivo sea legible */
+    [data-bs-theme="dark"] .content-card h2, 
+    [data-bs-theme="dark"] .content-card p {
+        color: #ffffff !important;
+    }
+
+    /* Ajuste para las pestañas (Tabs) para que no se vean grises sobre blanco */
+    [data-bs-theme="dark"] .nav-tabs .nav-link {
+        color: #dee2e6 !important;
+    }
+
+    [data-bs-theme="dark"] .nav-tabs .nav-link.active {
+        background-color: #343a40 !important;
+        color: #ffffff !important;
+        border-color: #495057 #495057 transparent !important;
+    }
+
+    body {
+        background-image: url("{% static 'images/background.jpg' %}");
+        
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed; /* Esto hace que el fondo se quede quieto al hacer scroll */
+    }
+
+
+    .main-content-area {
+        background-color: rgba(255, 255, 255, 0.8); /* Fondo blanco con 80% de opacidad */
+        min-height: 100vh;
+    }
+
+    [data-bs-theme="dark"] {
+        /* Forzamos que los fondos "light" se vuelvan oscuros */
+        .bg-light {
+            background-color: var(--bs-tertiary-bg) !important;
+        }
+        
+        /* Forzamos que los textos negros o grises se vuelvan claros */
+        .text-black, 
+        .text-dark, 
+        .text-secondary,
+        .form-label {
+            color: var(--bs-body-color) !important;
+        }
+
+        /* Ajuste para los inputs y placeholders */
+        .form-control {
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
+            border-color: var(--bs-border-color);
+        }
+        
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Tarjetas */
+        .card {
+            background-color: var(--bs-card-bg);
+            border-color: var(--bs-border-color);
+        }
+    }
+
+
+
+    [data-bs-theme="dark"] .content-card,
+    [data-bs-theme="dark"] .clase-item{
+        background-color: rgba(33, 37, 41, 0.9) !important; /* Fondo oscuro semi-transparente */
+        border: 1px solid #495057 !important;
+        color: #f8f9fa !important;
+    }
+
+    /* Ajuste para las pestañas (Tabs) */
+    [data-bs-theme="dark"] .nav-tabs {
+        border-bottom-color: #495057;
+    }
+
+    [data-bs-theme="dark"] .nav-link {
+        color: #adb5bd !important;
+    }
+
+    [data-bs-theme="dark"] .nav-link.active {
+        background-color: #343a40 !important;
+        color: #ffffff !important;
+        border-color: #495057 #495057 transparent !important;
+    }
+
+    /* Títulos internos de la lista de pagos */
+    [data-bs-theme="dark"] .clase-info h4, 
+    [data-bs-theme="dark"] .clase-pago-info h4 {
+        color: #ffffff !important;
+    }
+
+    /* Divisores */
+    [data-bs-theme="dark"] hr.footer-divider {
+        border-top: 1px solid #495057;
+        opacity: 0.5;
+    }
+    [data-bs-theme="dark"] .badge-pago {
+        opacity: 0.85;
+        filter: saturate(0.8);
+    }
+
+
+        /* Mejorar visibilidad de botones en Historial (Modo Oscuro) */
+
+    [data-bs-theme="dark"] .btn-outline-primary {
+        background-color: #0d6efd !important; /* Azul sólido */
+        color: #ffffff !important;           /* Texto blanco */
+        border: none !important;
+    }
+
+    [data-bs-theme="dark"] .btn-outline-danger {
+        background-color: #dc3545 !important; /* Rojo sólido */
+        color: #ffffff !important;           /* Texto blanco */
+        border: none !important;
+    }
+
+    /* Efecto al pasar el mouse para que no se sientan "planos" */
+    [data-bs-theme="dark"] .btn-outline-primary:hover {
+        background-color: #0b5ed7 !important;
+        filter: brightness(1.2);
+    }
+
+    [data-bs-theme="dark"] .btn-outline-danger:hover {
+        background-color: #bb2d3b !important;
+        filter: brightness(1.2);
+    }
+
+    /* Extra: Hacer que el badge "Finalizada" se note más */
+    [data-bs-theme="dark"] .badge.bg-secondary {
+        background-color: #495057 !important;
+        color: #e9ecef !important;
+        border: 1px solid #6c757d;
+    }
+
+    /* Ajuste específico para bloques ocupados en Modo Oscuro */
+    [data-bs-theme="dark"] .bg-gray-200 {
+        background-color: rgba(255, 255, 255, 0.05) !important; /* Fondo casi transparente */
+        border-color: #495057 !important;
+    }
+
+    [data-bs-theme="dark"] .bg-gray-200 .text-muted {
+        color: #adb5bd !important; /* Gris claro legible */
+    }
+
+    [data-bs-theme="dark"] .bg-gray-200 .text-decoration-line-through {
+        color: #6c757d !important; /* Texto tachado más oscuro */
+    }
+
+    /* Asegurar que el contenedor "Ocupados" sea oscuro */
+    [data-bs-theme="dark"] .bg-light {
+        background-color: rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Ajuste para bloques de disponibilidad en Modo Oscuro */
+    [data-bs-theme="dark"] .border-success.bg-white {
+        background-color: rgba(25, 135, 84, 0.15) !important; /* Un fondo verde oscuro muy sutil */
+        border-color: #198754 !important;
+    }
+
+    /* Forzar que el texto del día (que tiene .text-dark) sea blanco */
+    [data-bs-theme="dark"] .border-success.bg-white .text-dark {
+        color: #ffffff !important;
+    }
+
+    /* Ajuste para el encabezado de la tarjeta "Disponibles" */
+    [data-bs-theme="dark"] .card-header.bg-white {
+        background-color: transparent !important;
+        border-bottom: 1px solid #495057 !important;
+    }
+
+    .navbar-brand img {
+    height: 45px; /* Ajusta el tamaño para que sea legible pero no gigante */
+    transition: transform 0.3s ease, filter 0.3s ease;
+    /* Un ligero resplandor para que destaque en el fondo oscuro */
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
+    }
+
+    .navbar-brand img:hover {
+        transform: scale(1.1); /* Efecto de aumento suave al pasar el mouse */
+        filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+    }
+    </style>
 </head>
 
 <body class="flex flex-col min-h-screen">
@@ -61,5 +361,42 @@
     {% include 'footer.html' %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const themeToggle = document.getElementById('darkModeToggle');
+        const htmlElement = document.documentElement;
+
+        // 1. Al cargar la página, revisar si ya había una preferencia guardada
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-bs-theme', savedTheme);
+        themeToggle.checked = savedTheme === 'dark';
+
+        // 2. Escuchar el cambio del interruptor
+        themeToggle.addEventListener('change', () => {
+            const newTheme = themeToggle.checked ? 'dark' : 'light';
+            
+            // Cambia el atributo de Bootstrap
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            
+            // Guarda la preferencia para la próxima visita
+            localStorage.setItem('theme', newTheme);
+            
+            // Opcional: Ajustar la opacidad del fondo si tienes imagen
+            ajustarFondo(newTheme);
+        });
+
+        function ajustarFondo(theme) {
+            const contentArea = document.querySelector('.main-content-area');
+            if (theme === 'dark') {
+                contentArea.style.backgroundColor = "rgba(15, 15, 15, 0.9)"; // Fondo casi negro y más opaco
+            } else {
+                contentArea.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+            }
+        }
+        
+        // Ejecutar ajuste inicial
+        ajustarFondo(savedTheme);
+    </script>
+    
 </body>
 </html>
